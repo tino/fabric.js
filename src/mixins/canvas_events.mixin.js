@@ -261,20 +261,20 @@
     _onMouseDown: function (e) {
       this.__onMouseDown(e);
 
-      addListener(fabric.document, 'touchend', this._onMouseUp);
-      addListener(fabric.document, 'touchmove', this._onMouseMove);
+      // addListener(fabric.document, 'touchend', this._onMouseUp);
+      // addListener(fabric.document, 'touchmove', this._onMouseMove);
 
-      removeListener(this.upperCanvasEl, 'mousemove', this._onMouseMove);
-      removeListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
+      // removeListener(this.upperCanvasEl, 'mousemove', this._onMouseMove);
+      // removeListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
 
-      if (e.type === 'touchstart') {
-        // Unbind mousedown to prevent double triggers from touch devices
-        removeListener(this.upperCanvasEl, 'mousedown', this._onMouseDown);
-      }
-      else {
-        addListener(fabric.document, 'mouseup', this._onMouseUp);
-        addListener(fabric.document, 'mousemove', this._onMouseMove);
-      }
+      // if (e.type === 'touchstart') {
+      //   // Unbind mousedown to prevent double triggers from touch devices
+      //   removeListener(this.upperCanvasEl, 'mousedown', this._onMouseDown);
+      // }
+      // else {
+      //   addListener(fabric.document, 'mouseup', this._onMouseUp);
+      //   addListener(fabric.document, 'mousemove', this._onMouseMove);
+      // }
     },
 
     /**
@@ -284,23 +284,23 @@
     _onMouseUp: function (e) {
       this.__onMouseUp(e);
 
-      removeListener(fabric.document, 'mouseup', this._onMouseUp);
-      removeListener(fabric.document, 'touchend', this._onMouseUp);
+      // removeListener(fabric.document, 'mouseup', this._onMouseUp);
+      // removeListener(fabric.document, 'touchend', this._onMouseUp);
 
-      removeListener(fabric.document, 'mousemove', this._onMouseMove);
-      removeListener(fabric.document, 'touchmove', this._onMouseMove);
+      // removeListener(fabric.document, 'mousemove', this._onMouseMove);
+      // removeListener(fabric.document, 'touchmove', this._onMouseMove);
 
-      addListener(this.upperCanvasEl, 'mousemove', this._onMouseMove);
-      addListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
+      // addListener(this.upperCanvasEl, 'mousemove', this._onMouseMove);
+      // addListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
 
-      if (e.type === 'touchend') {
-        // Wait 400ms before rebinding mousedown to prevent double triggers
-        // from touch devices
-        var _this = this;
-        setTimeout(function() {
-          addListener(_this.upperCanvasEl, 'mousedown', _this._onMouseDown);
-        }, 400);
-      }
+      // if (e.type === 'touchend') {
+      //   // Wait 400ms before rebinding mousedown to prevent double triggers
+      //   // from touch devices
+      //   var _this = this;
+      //   setTimeout(function() {
+      //     addListener(_this.upperCanvasEl, 'mousedown', _this._onMouseDown);
+      //   }, 400);
+      // }
     },
 
     /**
