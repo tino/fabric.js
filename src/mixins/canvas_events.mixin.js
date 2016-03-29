@@ -1,6 +1,6 @@
 (function(){
   fabric.input = {}
-  fabric.input.AbstractMouseStateManager = fabric.util.createClass({
+  fabric.input.AbstractMouse = fabric.util.createClass({
     mouseDown: function() {
       // console.debug('abstract mouseDown');
     },
@@ -25,7 +25,7 @@
 
   })
 
-  fabric.input.DefaultMouse = fabric.util.createClass(fabric.input.AbstractMouseStateManager, {
+  fabric.input.DefaultMouse = fabric.util.createClass(fabric.input.AbstractMouse, {
     initialize: function(canvas) {
       this.canvas = canvas;
     },
@@ -64,8 +64,6 @@
     },
 
   })
-
-
 
 })();
 
