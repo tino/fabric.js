@@ -45,6 +45,24 @@
     // mouseWheel: function () {}
   })
 
+  fabric.input.DrawingMouse = fabric.util.createClass(fabric.input.AbstractMouse, {
+    initialize: function(canvas) {
+      this.canvas = canvas;
+    },
+    mouseDown: function(e) {
+      // console.debug('default mouseDown');
+      this.canvas._onMouseDownInDrawingMode(e);
+    },
+    mouseUp: function(e) {
+      // console.debug('default mouseUp');
+      this.canvas._onMouseUpInDrawingMode(e);
+    },
+    mouseMove: function (e) {
+      // console.debug('default mouseMove');
+      this.canvas._onMouseMoveInDrawingMode(e);
+    },
+  })
+
   fabric.input.Input = fabric.util.createClass({
     initialize: function(canvas) {
       this.canvas = canvas;
