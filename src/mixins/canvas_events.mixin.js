@@ -50,6 +50,15 @@
       this.canvas = canvas;
       this.input = new fabric.input.DefaultMouse(canvas);
     },
+    setInput: function(klass) {
+      this.input = new klass(this.canvas)
+      if (this.input.cursor) {
+        this.canvas.setCursor(this.input.cursor)
+      }
+    },
+    reset: function() {
+      this.input = new fabric.input.DefaultMouse(this.canvas);
+    },
     mouseDown: function(e) {
       this.input.mouseDown(e)
     },
@@ -82,8 +91,6 @@
   addListener = fabric.util.addListener,
   removeListener = fabric.util.removeListener;
 
-  var eventInput = null
-
   fabric.util.object.extend(fabric.Canvas.prototype, /** @lends fabric.Canvas.prototype */ {
 
     /**
@@ -107,21 +114,21 @@
      */
     _initEventListeners: function () {
 
-      eventInput = new fabric.input.Input(this)
+      this.eventInput = new fabric.input.Input(this)
 
       this._bindEvents();
-      eventInput.mouseDown = eventInput.mouseDown.bind(eventInput);
-      eventInput.mouseUp = eventInput.mouseUp.bind(eventInput);
-      eventInput.mouseMove = eventInput.mouseMove.bind(eventInput);
-      eventInput.mouseWheel = eventInput.mouseWheel.bind(eventInput);
+      this.eventInput.mouseDown = this.eventInput.mouseDown.bind(this.eventInput);
+      this.eventInput.mouseUp = this.eventInput.mouseUp.bind(this.eventInput);
+      this.eventInput.mouseMove = this.eventInput.mouseMove.bind(this.eventInput);
+      this.eventInput.mouseWheel = this.eventInput.mouseWheel.bind(this.eventInput);
 
       // addListener(fabric.window, 'resize', this._onResize);
 
       // mouse events
-      addListener(this.upperCanvasEl, 'mousedown', eventInput.mouseDown);
-      addListener(this.upperCanvasEl, 'mouseup', eventInput.mouseUp);
-      addListener(this.upperCanvasEl, 'mousemove', eventInput.mouseMove);
-      addListener(this.upperCanvasEl, 'mousewheel', eventInput.mouseWheel);
+      addListener(this.upperCanvasEl, 'mousedown', this.eventInput.mouseDown);
+      addListener(this.upperCanvasEl, 'mouseup', this.eventInput.mouseUp);
+      addListener(this.upperCanvasEl, 'mousemove', this.eventInput.mouseMove);
+      addListener(this.upperCanvasEl, 'mousewheel', this.eventInput.mouseWheel);
 
 
       // touch events
