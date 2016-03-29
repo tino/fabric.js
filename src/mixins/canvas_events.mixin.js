@@ -1,3 +1,74 @@
+(function(){
+  fabric.input = {}
+  fabric.input.AbstractMouseStateManager = fabric.util.createClass({
+    mouseDown: function() {
+      // console.debug('abstract mouseDown');
+    },
+    mouseUp: function() {
+      // console.debug('abstract mouseUp');
+    },
+    mouseMove: function () {
+      // console.debug('abstract mouseDown');
+    },
+    mouseWheel: function () {
+      // console.debug('abstract mouseWheel');
+    },
+    // Ignored for now
+    // this._onResize = this._onResize.bind(this);
+    // this._onGesture = this._onGesture.bind(this);
+    // this._onDrag = this._onDrag.bind(this);
+    // this._onShake = this._onShake.bind(this);
+    // this._onLongPress = this._onLongPress.bind(this);
+    // this._onOrientationChange = this._onOrientationChange.bind(this);
+    // this._onMouseWheel = this._onMouseWheel.bind(this);
+
+
+  })
+
+  fabric.input.DefaultMouse = fabric.util.createClass(fabric.input.AbstractMouseStateManager, {
+    initialize: function(canvas) {
+      this.canvas = canvas;
+    },
+    mouseDown: function(e) {
+      // console.debug('default mouseDown');
+      this.canvas._onMouseDown(e);
+    },
+    mouseUp: function(e) {
+      // console.debug('default mouseUp');
+      this.canvas._onMouseUp(e);
+    },
+    mouseMove: function (e) {
+      // console.debug('default mouseMove');
+      this.canvas._onMouseMove(e);
+    },
+
+    // mouseWheel: function () {}
+  })
+
+  fabric.input.Input = fabric.util.createClass({
+    initialize: function(canvas) {
+      this.canvas = canvas;
+      this.input = new fabric.input.DefaultMouse(canvas);
+    },
+    mouseDown: function(e) {
+      this.input.mouseDown(e)
+    },
+    mouseUp: function(e) {
+      this.input.mouseUp(e)
+    },
+    mouseMove: function (e) {
+      this.input.mouseMove(e)
+    },
+    mouseWheel: function (e) {
+      this.input.mouseWheel(e)
+    },
+
+  })
+
+
+
+})();
+
 (function() {
 
   var cursorOffset = {
@@ -12,6 +83,8 @@
   },
   addListener = fabric.util.addListener,
   removeListener = fabric.util.removeListener;
+
+  var eventInput = null
 
   fabric.util.object.extend(fabric.Canvas.prototype, /** @lends fabric.Canvas.prototype */ {
 
@@ -36,26 +109,34 @@
      */
     _initEventListeners: function () {
 
-      this._bindEvents();
+      eventInput = new fabric.input.Input(this)
 
-      addListener(fabric.window, 'resize', this._onResize);
+      this._bindEvents();
+      eventInput.mouseDown = eventInput.mouseDown.bind(eventInput);
+      eventInput.mouseUp = eventInput.mouseUp.bind(eventInput);
+      eventInput.mouseMove = eventInput.mouseMove.bind(eventInput);
+      eventInput.mouseWheel = eventInput.mouseWheel.bind(eventInput);
+
+      // addListener(fabric.window, 'resize', this._onResize);
 
       // mouse events
-      addListener(this.upperCanvasEl, 'mousedown', this._onMouseDown);
-      addListener(this.upperCanvasEl, 'mousemove', this._onMouseMove);
-      addListener(this.upperCanvasEl, 'mousewheel', this._onMouseWheel);
+      addListener(this.upperCanvasEl, 'mousedown', eventInput.mouseDown);
+      addListener(this.upperCanvasEl, 'mouseup', eventInput.mouseUp);
+      addListener(this.upperCanvasEl, 'mousemove', eventInput.mouseMove);
+      addListener(this.upperCanvasEl, 'mousewheel', eventInput.mouseWheel);
+
 
       // touch events
-      addListener(this.upperCanvasEl, 'touchstart', this._onMouseDown);
-      addListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
+      // addListener(this.upperCanvasEl, 'touchstart', this._onMouseDown);
+      // addListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
 
-      if (typeof eventjs !== 'undefined' && 'add' in eventjs) {
-        eventjs.add(this.upperCanvasEl, 'gesture', this._onGesture);
-        eventjs.add(this.upperCanvasEl, 'drag', this._onDrag);
-        eventjs.add(this.upperCanvasEl, 'orientation', this._onOrientationChange);
-        eventjs.add(this.upperCanvasEl, 'shake', this._onShake);
-        eventjs.add(this.upperCanvasEl, 'longpress', this._onLongPress);
-      }
+      // if (typeof eventjs !== 'undefined' && 'add' in eventjs) {
+      //   eventjs.add(this.upperCanvasEl, 'gesture', this._onGesture);
+      //   eventjs.add(this.upperCanvasEl, 'drag', this._onDrag);
+      //   eventjs.add(this.upperCanvasEl, 'orientation', this._onOrientationChange);
+      //   eventjs.add(this.upperCanvasEl, 'shake', this._onShake);
+      //   eventjs.add(this.upperCanvasEl, 'longpress', this._onLongPress);
+      // }
     },
 
     /**
