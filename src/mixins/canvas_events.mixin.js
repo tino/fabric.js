@@ -13,6 +13,15 @@
     mouseWheel: function () {
       // console.debug('abstract mouseWheel');
     },
+    keyDown: function (e) {
+      // console.debug('abstract keyDown');
+    },
+    keyUp: function (e) {
+      // console.debug('abstract keyUp');
+    },
+    keyPress: function (e) {
+      // console.debug('abstract keyPress');
+    }
     // Ignored for now
     // this._onResize = this._onResize.bind(this);
     // this._onGesture = this._onGesture.bind(this);
@@ -41,8 +50,16 @@
       // console.debug('default mouseMove');
       this.canvas._onMouseMove(e);
     },
+    keyUp: function (e) {
+      // console.debug('default keyUp');
+    },
+    keyDown: function (e) {
+      // console.debug('default keyDown');
+    },
+    keyPress: function (e) {
+      // console.debug('default keyPress');
+    },
 
-    // mouseWheel: function () {}
   })
 
   fabric.input.DrawingMouse = fabric.util.createClass(fabric.input.AbstractMouse, {
@@ -88,6 +105,15 @@
     },
     mouseWheel: function (e) {
       this.input.mouseWheel(e)
+    },
+    keyDown: function (e) {
+      this.input.keyDown && this.input.keyDown(e)
+    },
+    keyUp: function (e) {
+      this.input.keyUp && this.input.keyUp(e)
+    },
+    keyPress: function (e) {
+      this.input.keyPress && this.input.keyPress(e)
     },
 
   })
@@ -139,6 +165,9 @@
       this.eventInput.mouseUp = this.eventInput.mouseUp.bind(this.eventInput);
       this.eventInput.mouseMove = this.eventInput.mouseMove.bind(this.eventInput);
       this.eventInput.mouseWheel = this.eventInput.mouseWheel.bind(this.eventInput);
+      this.eventInput.keyDown = this.eventInput.keyDown.bind(this.eventInput);
+      this.eventInput.keyUp = this.eventInput.keyUp.bind(this.eventInput);
+      this.eventInput.keyPress = this.eventInput.keyPress.bind(this.eventInput);
 
       // addListener(fabric.window, 'resize', this._onResize);
 
@@ -148,6 +177,12 @@
       addListener(this.upperCanvasEl, 'mousemove', this.eventInput.mouseMove);
       addListener(this.upperCanvasEl, 'mousewheel', this.eventInput.mouseWheel);
 
+      // key events
+      addListener(this.upperCanvasEl.parentElement, 'keydown', this.eventInput.keyDown);
+      addListener(this.upperCanvasEl.parentElement, 'keyup', this.eventInput.keyUp);
+      addListener(this.upperCanvasEl.parentElement, 'keypress', this.eventInput.keyPress);
+      // Set a tabindex so the key events work on our element
+      this.upperCanvasEl.parentElement.tabIndex = 10000;
 
       // touch events
       // addListener(this.upperCanvasEl, 'touchstart', this._onMouseDown);
