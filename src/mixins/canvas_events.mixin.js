@@ -13,6 +13,9 @@
     mouseWheel: function () {
       // console.debug('abstract mouseWheel');
     },
+    dblClick: function () {
+      // console.debug('abstract dblClick');
+    },
     keyDown: function (e) {
       // console.debug('abstract keyDown');
     },
@@ -49,6 +52,9 @@
     mouseMove: function (e) {
       // console.debug('default mouseMove');
       this.canvas._onMouseMove(e);
+    },
+    dblClick: function () {
+      // console.debug('abstract dblClick');
     },
     keyUp: function (e) {
       // console.debug('default keyUp');
@@ -111,6 +117,9 @@
     mouseWheel: function (e) {
       this.input.mouseWheel(e)
     },
+    dblClick: function (e) {
+      this.input.dblClick(e)
+    },
     keyDown: function (e) {
       this.input.keyDown && this.input.keyDown(e)
     },
@@ -171,6 +180,7 @@
       this.eventInput.mouseUp = this.eventInput.mouseUp.bind(this.eventInput);
       this.eventInput.mouseMove = this.eventInput.mouseMove.bind(this.eventInput);
       this.eventInput.mouseWheel = this.eventInput.mouseWheel.bind(this.eventInput);
+      this.eventInput.dblClick = this.eventInput.dblClick.bind(this.eventInput);
       this.eventInput.keyDown = this.eventInput.keyDown.bind(this.eventInput);
       this.eventInput.keyUp = this.eventInput.keyUp.bind(this.eventInput);
       this.eventInput.keyPress = this.eventInput.keyPress.bind(this.eventInput);
@@ -182,6 +192,7 @@
       addListener(this.upperCanvasEl, 'mouseup', this.eventInput.mouseUp);
       addListener(this.upperCanvasEl, 'mousemove', this.eventInput.mouseMove);
       addListener(this.upperCanvasEl, 'mousewheel', this.eventInput.mouseWheel);
+      addListener(this.upperCanvasEl, 'dblclick', this.eventInput.dblClick);
 
       // key events
       addListener(this.upperCanvasEl.parentElement, 'keydown', this.eventInput.keyDown);
