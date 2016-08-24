@@ -236,20 +236,26 @@
     removeListeners: function() {
       removeListener(fabric.window, 'resize', this._onResize);
 
-      removeListener(this.upperCanvasEl, 'mousedown', this._onMouseDown);
-      removeListener(this.upperCanvasEl, 'mousemove', this._onMouseMove);
-      removeListener(this.upperCanvasEl, 'mousewheel', this._onMouseWheel);
+      removeListener(this.upperCanvasEl, 'mousedown', this.onMouseDown);
+      removeListener(this.upperCanvasEl, 'mouseup', this.onMouseUp);
+      removeListener(this.upperCanvasEl, 'mousemove', this.onMouseMove);
+      removeListener(this.upperCanvasEl, 'mousewheel', this.onMouseWheel);
+      removeListener(this.upperCanvasEl, 'dblClick', this.dblClick)
 
-      removeListener(this.upperCanvasEl, 'touchstart', this._onMouseDown);
-      removeListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
+      removeListener(this.upperCanvasEl, 'keydown', this.eventInput.keyDown);
+      removeListener(this.upperCanvasEl, 'keyup', this.eventInput.keyUp);
+      removeListener(this.upperCanvasEl, 'keypress', this.eventInput.keyPress);
 
-      if (typeof eventjs !== 'undefined' && 'remove' in eventjs) {
-        eventjs.remove(this.upperCanvasEl, 'gesture', this._onGesture);
-        eventjs.remove(this.upperCanvasEl, 'drag', this._onDrag);
-        eventjs.remove(this.upperCanvasEl, 'orientation', this._onOrientationChange);
-        eventjs.remove(this.upperCanvasEl, 'shake', this._onShake);
-        eventjs.remove(this.upperCanvasEl, 'longpress', this._onLongPress);
-      }
+    //   removeListener(this.upperCanvasEl, 'touchstart', this._onMouseDown);
+    //   removeListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
+      //
+    //   if (typeof eventjs !== 'undefined' && 'remove' in eventjs) {
+    //     eventjs.remove(this.upperCanvasEl, 'gesture', this._onGesture);
+    //     eventjs.remove(this.upperCanvasEl, 'drag', this._onDrag);
+    //     eventjs.remove(this.upperCanvasEl, 'orientation', this._onOrientationChange);
+    //     eventjs.remove(this.upperCanvasEl, 'shake', this._onShake);
+    //     eventjs.remove(this.upperCanvasEl, 'longpress', this._onLongPress);
+    //   }
     },
 
     /**
