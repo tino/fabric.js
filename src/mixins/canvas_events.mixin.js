@@ -13,6 +13,9 @@
     mouseWheel: function () {
       // console.debug('abstract mouseWheel');
     },
+    dblClick: function () {
+      // console.debug('abstract dblClick');
+    },
     keyDown: function (e) {
       // console.debug('abstract keyDown');
     },
@@ -49,6 +52,9 @@
     mouseMove: function (e) {
       // console.debug('default mouseMove');
       this.canvas._onMouseMove(e);
+    },
+    dblClick: function () {
+      // console.debug('abstract dblClick');
     },
     keyUp: function (e) {
       // console.debug('default keyUp');
@@ -105,6 +111,9 @@
     },
     mouseWheel: function (e) {
       this.input.mouseWheel(e)
+    },
+    dblClick: function (e) {
+      this.input.dblClick(e)
     },
     keyDown: function (e) {
       this.input.keyDown && this.input.keyDown(e)
@@ -165,6 +174,7 @@
       this.eventInput.mouseUp = this.eventInput.mouseUp.bind(this.eventInput);
       this.eventInput.mouseMove = this.eventInput.mouseMove.bind(this.eventInput);
       this.eventInput.mouseWheel = this.eventInput.mouseWheel.bind(this.eventInput);
+      this.eventInput.dblClick = this.eventInput.dblClick.bind(this.eventInput);
       this.eventInput.keyDown = this.eventInput.keyDown.bind(this.eventInput);
       this.eventInput.keyUp = this.eventInput.keyUp.bind(this.eventInput);
       this.eventInput.keyPress = this.eventInput.keyPress.bind(this.eventInput);
@@ -176,6 +186,7 @@
       addListener(this.upperCanvasEl, 'mouseup', this.eventInput.mouseUp);
       addListener(this.upperCanvasEl, 'mousemove', this.eventInput.mouseMove);
       addListener(this.upperCanvasEl, 'mousewheel', this.eventInput.mouseWheel);
+      addListener(this.upperCanvasEl, 'dblclick', this.eventInput.dblClick);
 
       // key events
       addListener(this.upperCanvasEl.parentElement, 'keydown', this.eventInput.keyDown);
@@ -219,20 +230,26 @@
     removeListeners: function() {
       removeListener(fabric.window, 'resize', this._onResize);
 
-      removeListener(this.upperCanvasEl, 'mousedown', this._onMouseDown);
-      removeListener(this.upperCanvasEl, 'mousemove', this._onMouseMove);
-      removeListener(this.upperCanvasEl, 'mousewheel', this._onMouseWheel);
+      removeListener(this.upperCanvasEl, 'mousedown', this.onMouseDown);
+      removeListener(this.upperCanvasEl, 'mouseup', this.onMouseUp);
+      removeListener(this.upperCanvasEl, 'mousemove', this.onMouseMove);
+      removeListener(this.upperCanvasEl, 'mousewheel', this.onMouseWheel);
+      removeListener(this.upperCanvasEl, 'dblClick', this.dblClick)
 
-      removeListener(this.upperCanvasEl, 'touchstart', this._onMouseDown);
-      removeListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
+      removeListener(this.upperCanvasEl, 'keydown', this.eventInput.keyDown);
+      removeListener(this.upperCanvasEl, 'keyup', this.eventInput.keyUp);
+      removeListener(this.upperCanvasEl, 'keypress', this.eventInput.keyPress);
 
-      if (typeof eventjs !== 'undefined' && 'remove' in eventjs) {
-        eventjs.remove(this.upperCanvasEl, 'gesture', this._onGesture);
-        eventjs.remove(this.upperCanvasEl, 'drag', this._onDrag);
-        eventjs.remove(this.upperCanvasEl, 'orientation', this._onOrientationChange);
-        eventjs.remove(this.upperCanvasEl, 'shake', this._onShake);
-        eventjs.remove(this.upperCanvasEl, 'longpress', this._onLongPress);
-      }
+    //   removeListener(this.upperCanvasEl, 'touchstart', this._onMouseDown);
+    //   removeListener(this.upperCanvasEl, 'touchmove', this._onMouseMove);
+      //
+    //   if (typeof eventjs !== 'undefined' && 'remove' in eventjs) {
+    //     eventjs.remove(this.upperCanvasEl, 'gesture', this._onGesture);
+    //     eventjs.remove(this.upperCanvasEl, 'drag', this._onDrag);
+    //     eventjs.remove(this.upperCanvasEl, 'orientation', this._onOrientationChange);
+    //     eventjs.remove(this.upperCanvasEl, 'shake', this._onShake);
+    //     eventjs.remove(this.upperCanvasEl, 'longpress', this._onLongPress);
+    //   }
     },
 
     /**
