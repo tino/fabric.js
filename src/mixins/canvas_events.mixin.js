@@ -92,13 +92,18 @@
       this.input = new fabric.input.DefaultMouse(canvas);
     },
     setInput: function(klass) {
-      this.input = new klass(this.canvas)
+      this._previousInput = this.input;
+      this.input = new klass(this.canvas);
       if (this.input.cursor) {
         this.canvas.setCursor(this.input.cursor)
       }
     },
     reset: function() {
-      this.input = new fabric.input.DefaultMouse(this.canvas);
+      if (this._previousInput) {
+        this.input = this._previousInput;
+      } else {
+        this.input = new fabric.input.DefaultMouse(this.canvas);
+      }
     },
     mouseDown: function(e) {
       this.input.mouseDown(e)
@@ -170,6 +175,7 @@
       this.eventInput = new fabric.input.Input(this)
 
       this._bindEvents();
+      this.eventInput.setInput = this.eventInput.setInput.bind(this.eventInput);
       this.eventInput.mouseDown = this.eventInput.mouseDown.bind(this.eventInput);
       this.eventInput.mouseUp = this.eventInput.mouseUp.bind(this.eventInput);
       this.eventInput.mouseMove = this.eventInput.mouseMove.bind(this.eventInput);
