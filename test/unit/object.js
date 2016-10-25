@@ -4,7 +4,9 @@
 
   function getAbsolutePath(path) {
     var isAbsolute = /^https?:/.test(path);
-    if (isAbsolute) return path;
+    if (isAbsolute) {
+      return path;
+    }
     var imgEl = _createImageElement();
     imgEl.src = path;
     var src = imgEl.src;
@@ -12,8 +14,8 @@
     return src;
   }
 
-  var IMG_SRC     = fabric.isLikelyNode ? (__dirname + '/../fixtures/test_image.gif') : getAbsolutePath('../fixtures/test_image.gif'),
-      IMG_WIDTH   = 276,
+  var IMG_SRC = fabric.isLikelyNode ? (__dirname + '/../fixtures/test_image.gif') : getAbsolutePath('test/fixtures/test_image.gif'),
+      IMG_WIDTH = 276,
       IMG_HEIGHT  = 110;
 
   function _createImageElement() {
@@ -32,7 +34,9 @@
   function setSrc(img, src, callback) {
     if (fabric.isLikelyNode) {
       require('fs').readFile(src, function(err, imgData) {
-        if (err) throw err;
+        if (err) {
+          throw err;
+        };
         img.src = imgData;
         callback && callback();
       });
@@ -99,6 +103,23 @@
     equal(cObj.set('opacity', 0.5), cObj, 'chainable');
   });
 
+  test('set and minScaleLimit', function() {
+    var cObj = new fabric.Object({ left: 11, top: 22, width: 50, height: 60, opacity: 0.7 });
+
+    //the min scale limit is given by height.
+    equal(cObj.minScaleLimit.toFixed(3), 0.017);
+
+    cObj.set('width', 1000);
+    equal(cObj.width, 1000);
+    //the min scale limit is given by width.
+    equal(cObj.minScaleLimit, 0.001);
+
+    cObj.set('width', 1);
+    equal(cObj.width, 1);
+    //the min scale limit is given by height.
+    equal(cObj.minScaleLimit.toFixed(3), 0.017);
+  });
+
   test('set with object of prop/values', function() {
     var cObj = new fabric.Object({  });
 
@@ -150,16 +171,16 @@
   });
 
   test('toJSON', function() {
-    var emptyObjectJSON = '{"type":"object","originX":"left","originY":"top","left":0,"top":0,"width":0,"height":0,"fill":"rgb(0,0,0)",'+
-                          '"stroke":null,"strokeWidth":1,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,'+
-                          '"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,'+
-                          '"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over",'+
+    var emptyObjectJSON = '{"type":"object","originX":"left","originY":"top","left":0,"top":0,"width":0,"height":0,"fill":"rgb(0,0,0)",' +
+                          '"stroke":null,"strokeWidth":1,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,' +
+                          '"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,' +
+                          '"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over",' +
                           '"transformMatrix":null,"skewX":0,"skewY":0}';
 
-    var augmentedJSON = '{"type":"object","originX":"left","originY":"top","left":0,"top":0,"width":122,"height":0,"fill":"rgb(0,0,0)",'+
-                        '"stroke":null,"strokeWidth":1,"strokeDashArray":[5,2],"strokeLineCap":"round","strokeLineJoin":"bevil","strokeMiterLimit":5,'+
-                        '"scaleX":1.3,"scaleY":1,"angle":0,"flipX":false,"flipY":true,"opacity":0.88,'+
-                        '"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over",'+
+    var augmentedJSON = '{"type":"object","originX":"left","originY":"top","left":0,"top":0,"width":122,"height":0,"fill":"rgb(0,0,0)",' +
+                        '"stroke":null,"strokeWidth":1,"strokeDashArray":[5,2],"strokeLineCap":"round","strokeLineJoin":"bevil","strokeMiterLimit":5,' +
+                        '"scaleX":1.3,"scaleY":1,"angle":0,"flipX":false,"flipY":true,"opacity":0.88,' +
+                        '"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over",' +
                         '"transformMatrix":null,"skewX":0,"skewY":0}';
 
     var cObj = new fabric.Object();
@@ -291,7 +312,7 @@
       top: 20,
       width: 30,
       height: 40,
-      strokeDashArray: [ 5, 2 ],
+      strokeDashArray: [5, 2],
       strokeLineCap: 'round',
       strokeLineJoin: 'bevil',
       strokeMiterLimit: 5,
@@ -322,7 +343,7 @@
     deepEqual(augmentedObjectRepr.transformMatrix, toObjectObj.transformMatrix);
     notEqual(augmentedObjectRepr.strokeDashArray, toObjectObj.strokeDashArray);
     deepEqual(augmentedObjectRepr.strokeDashArray, toObjectObj.strokeDashArray);
-    
+
   });
 
   test('toDatalessObject', function() {
@@ -354,7 +375,6 @@
     equal(boundingRect.top, 0);
     equal(boundingRect.width, 0);
     equal(boundingRect.height, 0);
-
     cObj.set('width', 123).setCoords();
     boundingRect = cObj.getBoundingRect();
     equal(boundingRect.left, 0);
@@ -377,7 +397,7 @@
     equal(boundingRect.height, 334);
   });
 
-test('getBoundingRectWithStroke', function() {
+  test('getBoundingRectWithStroke', function() {
     var cObj = new fabric.Object(),
         boundingRect;
     ok(typeof cObj.getBoundingRect == 'function');
@@ -455,7 +475,7 @@ test('getBoundingRectWithStroke', function() {
     ok(typeof cObj.scaleToWidth == 'function');
     equal(cObj.scaleToWidth(100), cObj, 'chainable');
     equal(cObj.getWidth(), 100);
-    equal(cObj.get('scaleX'), 100/560);
+    equal(cObj.get('scaleX'), 100 / 560);
   });
 
   test('scaleToHeight', function() {
@@ -463,7 +483,7 @@ test('getBoundingRectWithStroke', function() {
     ok(typeof cObj.scaleToHeight == 'function');
     equal(cObj.scaleToHeight(100), cObj, 'chainable');
     equal(cObj.getHeight(), 100);
-    equal(cObj.get('scaleY'), 100/560);
+    equal(cObj.get('scaleY'), 100 / 560);
   });
 
   test('scaleToWidth on rotated object', function() {
@@ -505,43 +525,12 @@ test('getBoundingRectWithStroke', function() {
     equal(cObj.get('angle'), 45);
   });
 
-  test('setCoords', function() {
-    var cObj = new fabric.Object({ left: 150, top: 150, width: 100, height: 100, strokeWidth: 0});
-    ok(typeof cObj.setCoords == 'function');
-    equal(cObj.setCoords(), cObj, 'chainable');
-
-    cObj.set('left', 250).set('top', 250);
-
-    // coords should still correspond to initial one, even after invoking `set`
-    equal(cObj.oCoords.tl.x, 150);
-    equal(cObj.oCoords.tl.y, 150);
-    equal(cObj.oCoords.tr.x, 250);
-    equal(cObj.oCoords.tr.y, 150);
-    equal(cObj.oCoords.bl.x, 150);
-    equal(cObj.oCoords.bl.y, 250);
-    equal(cObj.oCoords.br.x, 250);
-    equal(cObj.oCoords.br.y, 250);
-
-    // recalculate coords
-    cObj.setCoords();
-
-    // check that coords are now updated
-    equal(cObj.oCoords.tl.x, 250);
-    equal(cObj.oCoords.tl.y, 250);
-    equal(cObj.oCoords.tr.x, 350);
-    equal(cObj.oCoords.tr.y, 250);
-    equal(cObj.oCoords.bl.x, 250);
-    equal(cObj.oCoords.bl.y, 350);
-    equal(cObj.oCoords.br.x, 350);
-    equal(cObj.oCoords.br.y, 350);
-  });
-
   test('drawBorders', function() {
     var cObj = new fabric.Object(), canvas = fabric.document.createElement('canvas');
 
     //let excanvas kick in for IE8 and lower
     if (!canvas.getContext && typeof G_vmlCanvasManager != 'undefined') {
-        G_vmlCanvasManager.initElement(canvas);
+      G_vmlCanvasManager.initElement(canvas);
     }
 
     var dummyContext = canvas.getContext('2d');
@@ -555,7 +544,7 @@ test('getBoundingRectWithStroke', function() {
 
     //let excanvas kick in for IE8 and lower
     if (!canvas.getContext && typeof G_vmlCanvasManager != 'undefined') {
-        G_vmlCanvasManager.initElement(canvas);
+      G_vmlCanvasManager.initElement(canvas);
     }
     var dummyContext = canvas.getContext('2d');
     ok(typeof cObj.drawControls == 'function');
@@ -580,7 +569,7 @@ test('getBoundingRectWithStroke', function() {
   });
 
   asyncTest('cloneAsImage', function() {
-    var cObj = new fabric.Rect({ width: 100, height: 100, fill: 'red' });
+    var cObj = new fabric.Rect({ width: 100, height: 100, fill: 'red', strokeWidth: 0 });
 
     ok(typeof cObj.cloneAsImage == 'function');
 
@@ -594,12 +583,37 @@ test('getBoundingRectWithStroke', function() {
       setTimeout(function() {
         ok(image);
         ok(image instanceof fabric.Image);
+        equal(image.width, 100, 'the image has same dimension of object');
         start();
       }, 500);
 
       cObj.cloneAsImage(function(i) {
         image = i;
       });
+    }
+  });
+
+  asyncTest('cloneAsImage with retina scaling enabled', function() {
+    var cObj = new fabric.Rect({ width: 100, height: 100, fill: 'red', strokeWidth: 0 });
+    fabric.devicePixelRatio = 2;
+    if (!fabric.Canvas.supports('toDataURL')) {
+      fabric.log('`toDataURL` is not supported by this environment; skipping `cloneAsImage` test (as it relies on `toDataURL`)');
+      start();
+    }
+    else {
+      var image;
+
+      setTimeout(function() {
+        ok(image);
+        ok(image instanceof fabric.Image);
+        equal(image.width, 200, 'the image has been scaled by retina');
+        fabric.devicePixelRatio = 1;
+        start();
+      }, 500);
+
+      cObj.cloneAsImage(function(i) {
+        image = i;
+      }, { enableRetinaScaling: true });
     }
   });
 
@@ -615,7 +629,7 @@ test('getBoundingRectWithStroke', function() {
     //   'JC0eQCGpM0DMCRtHsDjB5K06yueJFXJAAAAAElFTkSuQmCC';
 
     var cObj = new fabric.Rect({
-      width: 100, height: 100, fill: 'red'
+      width: 100, height: 100, fill: 'red', strokeWidth: 0
     });
 
     ok(typeof cObj.toDataURL == 'function');
@@ -632,13 +646,13 @@ test('getBoundingRectWithStroke', function() {
         dataURL = cObj.toDataURL({ format: 'jpeg' });
         equal(dataURL.substring(0, 22), 'data:image/jpeg;base64');
       }
-      catch(err) {
+      catch (err) {
         fabric.log('jpeg toDataURL not supported');
       }
     }
   });
 
-test('toDataURL & reference to canvas', function() {
+  test('toDataURL & reference to canvas', function() {
   // var data =
   //   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQA'+
   //   'AABkCAYAAABw4pVUAAAA+UlEQVR4nO3RoRHAQBDEsOu/6YR+B2s'+
@@ -649,42 +663,20 @@ test('toDataURL & reference to canvas', function() {
   //   'uYBGJI2D8CQtHkAhqTNAzAkbR6AIWnzAAxJmwdgSNo8AEPS5gEYkjYPw'+
   //   'JC0eQCGpM0DMCRtHsDjB5K06yueJFXJAAAAAElFTkSuQmCC';
 
-  var cObj = new fabric.Rect({
-    width: 100, height: 100, fill: 'red'
-  });
-  canvas.add(cObj);
+    var cObj = new fabric.Rect({
+      width: 100, height: 100, fill: 'red'
+    });
+    canvas.add(cObj);
 
-  if (!fabric.Canvas.supports('toDataURL')) {
-    window.alert('toDataURL is not supported by this environment. Some of the tests can not be run.');
-  }
-  else {
-    var objCanvas = cObj.canvas;
-    cObj.toDataURL();
+    if (!fabric.Canvas.supports('toDataURL')) {
+      window.alert('toDataURL is not supported by this environment. Some of the tests can not be run.');
+    }
+    else {
+      var objCanvas = cObj.canvas;
+      cObj.toDataURL();
 
-    equal(objCanvas, cObj.canvas);
-  }
-});
-
-  test('hasStateChanged', function() {
-    var cObj = new fabric.Object();
-    ok(typeof cObj.hasStateChanged == 'function');
-    cObj.setupState();
-    ok(!cObj.hasStateChanged());
-    cObj.saveState();
-    cObj.set('left', 123).set('top', 456);
-    ok(cObj.hasStateChanged());
-  });
-
-  test('saveState', function() {
-    var cObj = new fabric.Object();
-    ok(typeof cObj.saveState == 'function');
-    cObj.setupState();
-    equal(cObj.saveState(), cObj, 'chainable');
-    cObj.set('left', 123).set('top', 456);
-    cObj.saveState();
-    cObj.set('left', 223).set('top', 556);
-    equal(cObj.originalState.left, 123);
-    equal(cObj.originalState.top, 456);
+      equal(objCanvas, cObj.canvas);
+    }
   });
 
   test('intersectsWithRectangle', function() {
@@ -704,17 +696,22 @@ test('toDataURL & reference to canvas', function() {
   test('intersectsWithObject', function() {
     var cObj = new fabric.Object({ left: 50, top: 50, width: 100, height: 100 });
     cObj.setCoords();
-    ok(typeof cObj.intersectsWithObject == 'function');
+    ok(typeof cObj.intersectsWithObject == 'function', 'has intersectsWithObject method');
 
     var cObj2 = new fabric.Object({ left: -150, top: -150, width: 200, height: 200 });
     cObj2.setCoords();
-    ok(cObj.intersectsWithObject(cObj2));
-    ok(cObj2.intersectsWithObject(cObj));
+    ok(cObj.intersectsWithObject(cObj2), 'cobj2 does intersect with cobj');
+    ok(cObj2.intersectsWithObject(cObj), 'cobj2 does intersect with cobj');
 
     var cObj3 = new fabric.Object({ left: 392.5, top: 339.5, width: 13, height: 33 });
     cObj3.setCoords();
-    ok(!cObj.intersectsWithObject(cObj3));
-    ok(!cObj3.intersectsWithObject(cObj));
+    ok(!cObj.intersectsWithObject(cObj3), 'cobj3 does not intersect with cobj (external)');
+    ok(!cObj3.intersectsWithObject(cObj), 'cobj3 does not intersect with cobj (external)');
+
+    var cObj4 = new fabric.Object({ left: 0, top: 0, width: 200, height: 200 });
+    cObj4.setCoords();
+    ok(cObj4.intersectsWithObject(cObj), 'overlapping objects are considered intersecting');
+    ok(cObj.intersectsWithObject(cObj4), 'overlapping objects are considered intersecting');
   });
 
   test('isContainedWithinRect', function() {
@@ -753,6 +750,17 @@ test('toDataURL & reference to canvas', function() {
     object.set('left', 112.45);
     object.toggle('left');
     equal(object.get('left'), 112.45, 'non boolean properties should not be affected');
+  });
+
+  test('_setLineDash', function() {
+    var object = new fabric.Rect({ left: 100, top: 124, width: 210, height: 66, stroke: 'black', strokeWidth: 2});
+    ok(typeof object._setLineDash === 'function');
+
+    canvas.add(object);
+    object.strokeDashArray = [3, 2, 1];
+    equal(object.strokeDashArray.length, 3, 'strokeDash array is odd');
+    canvas.renderAll();
+    equal(object.strokeDashArray.length, 6, 'strokeDash array now is even');
   });
 
   test('straighten', function() {
@@ -794,19 +802,14 @@ test('toDataURL & reference to canvas', function() {
     var onChange = function(){ onChangeFired = true; };
 
     var callbacks = { onComplete: onComplete, onChange: onChange };
-
     ok(typeof object.fxStraighten == 'function');
     equal(object.fxStraighten(callbacks), object, 'should be chainable');
-
     equal(fabric.util.toFixed(object.get('angle'), 0), 43);
-
     setTimeout(function(){
       ok(onCompleteFired);
       ok(onChangeFired);
-
       equal(object.get('angle'), 0, 'angle should be set to 0 by the end of animation');
       equal(object.fxStraighten(), object, 'should work without callbacks');
-
       start();
     }, 1000);
   });
@@ -967,36 +970,109 @@ test('toDataURL & reference to canvas', function() {
   test('center', function() {
     var object = new fabric.Object();
     object.strokeWidth = 0;
+    canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
     ok(typeof object.center == 'function');
 
     canvas.add(object);
     equal(object.center(), object, 'should be chainable');
 
-    equal(object.getLeft(), canvas.getWidth() / 2);
-    equal(object.getTop(), canvas.getHeight() / 2);
+    equal(object.getCenterPoint().x, canvas.getWidth() / 2);
+    equal(object.getCenterPoint().y, canvas.getHeight() / 2);
+
+    canvas.setZoom(2);
+    object.center();
+    equal(object.getCenterPoint().x, canvas.getWidth() / 2, 'object center.x is in canvas center when the canvas is transformed');
+    equal(object.getCenterPoint().y, canvas.getHeight() / 2, 'object center.y is in canvas center when the canvas is transformed');
+
   });
 
   test('centerH', function() {
     var object = new fabric.Object();
     object.strokeWidth = 0;
+    canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
     ok(typeof object.centerH == 'function');
+    var oldY = object.top;
 
     canvas.add(object);
     equal(object.centerH(), object, 'should be chainable');
 
-    equal(object.getLeft(), canvas.getWidth() / 2);
+    equal(object.getCenterPoint().x, canvas.getWidth() / 2);
+    equal(object.top, oldY, 'object top did not change');
+    canvas.setZoom(2);
+    object.centerH();
+    equal(object.getCenterPoint().x, canvas.getWidth() / 2, 'object center.x is in canvas center when the canvas is transformed');
   });
 
   test('centerV', function() {
     var object = new fabric.Object();
     object.strokeWidth = 0;
+    canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
     ok(typeof object.centerV == 'function');
+    var oldX = object.left;
 
     canvas.add(object);
     equal(object.centerV(), object, 'should be chainable');
+    equal(object.left, oldX, 'object top did not change');
+    equal(object.getCenterPoint().y, canvas.getHeight() / 2);
 
-    equal(object.getTop(), canvas.getHeight() / 2);
+    canvas.setZoom(2);
+    object.centerV();
+    equal(object.getCenterPoint().y, canvas.getHeight() / 2, 'object center.y is in canvas center when the canvas is transformed');
   });
+
+  test('viewportCenter', function() {
+    var object = new fabric.Object();
+    object.strokeWidth = 0;
+    canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
+    ok(typeof object.viewportCenter == 'function');
+
+    canvas.add(object);
+    equal(object.viewportCenter(), object, 'should be chainable');
+
+    equal(object.getCenterPoint().x, canvas.getWidth() / 2);
+    equal(object.getCenterPoint().y, canvas.getHeight() / 2);
+
+    canvas.setZoom(2);
+    object.viewportCenter();
+    equal(object.getCenterPoint().x, canvas.getWidth() / (2 * canvas.getZoom()));
+    equal(object.getCenterPoint().y, canvas.getHeight() / (2 * canvas.getZoom()));
+  });
+
+  test('viewportCenterH', function() {
+    var object = new fabric.Object();
+    object.strokeWidth = 0;
+    canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
+    ok(typeof object.viewportCenterH == 'function');
+
+    var oldY = object.top;
+    canvas.add(object);
+    equal(object.viewportCenterH(), object, 'should be chainable');
+    equal(object.getCenterPoint().x, canvas.getWidth() / 2);
+    equal(object.top, oldY, 'object top did not change');
+    canvas.setZoom(2);
+    object.viewportCenterH();
+    equal(object.getCenterPoint().x, canvas.getWidth() / (2 * canvas.getZoom()));
+    equal(object.top, oldY, 'object top did not change');
+  });
+
+  test('viewportCenterV', function() {
+    var object = new fabric.Object();
+    object.strokeWidth = 0;
+    canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
+    ok(typeof object.viewportCenterV == 'function');
+
+    var oldX = object.left;
+
+    canvas.add(object);
+    equal(object.viewportCenterV(), object, 'should be chainable');
+    equal(object.getCenterPoint().y, canvas.getHeight() / 2);
+    equal(object.left, oldX, 'object left did not change');
+    canvas.setZoom(2);
+    object.viewportCenterV();
+    equal(object.getCenterPoint().y, canvas.getHeight() / (2 * canvas.getZoom()));
+    equal(object.left, oldX, 'object left did not change');
+  });
+
 
   test('sendToBack', function() {
     var object = new fabric.Object();
@@ -1230,31 +1306,46 @@ test('toDataURL & reference to canvas', function() {
     object2.set({ originX: 'center', originY: 'center' }).setCoords();
     object3.set({ originX: 'center', originY: 'center' }).setCoords();
 
-    // object and object1 intersects
-    equal(object.intersectsWithObject(object1), true);
-    // object2 is contained in object (no intersection)
-    equal(object.intersectsWithObject(object2), false);
-    // object3 is outside of object (no intersection)
-    equal(object.intersectsWithObject(object3), false);
+    equal(object.intersectsWithObject(object1), true, 'object and object1 intersects');
+    equal(object.intersectsWithObject(object2), true, 'object2 is contained in object');
+    equal(object.intersectsWithObject(object3), false, 'object3 is outside of object (no intersection)');
   });
 
   test('isContainedWithinObject', function() {
-    var object = new fabric.Object({ left: 20, top: 30, width: 40, height: 50, angle: 230 }),
-        object1 = new fabric.Object({ left: 25, top: 35, width: 20, height: 20, angle: 50 }),
-        object2 = new fabric.Object({ left: 20, top: 30, width: 60, height: 30, angle: 10 }),
-        object3 = new fabric.Object({ left: 50, top: 50, width: 20, height: 20, angle: 0 });
+    var object = new fabric.Object({ left: 0, top: 0, width: 40, height: 40, angle: 0 }),
+        object1 = new fabric.Object({ left: 1, top: 1, width: 38, height: 38, angle: 0 }),
+        object2 = new fabric.Object({ left: 20, top: 20, width: 40, height: 40, angle: 0 }),
+        object3 = new fabric.Object({ left: 50, top: 50, width: 40, height: 40, angle: 0 });
 
-    object.set({ originX: 'center', originY: 'center' }).setCoords();
-    object1.set({ originX: 'center', originY: 'center' }).setCoords();
-    object2.set({ originX: 'center', originY: 'center' }).setCoords();
-    object3.set({ originX: 'center', originY: 'center' }).setCoords();
+    object.setCoords();
+    object1.setCoords();
+    object2.setCoords();
+    object3.setCoords();
 
-    // object1 is fully contained within object
-    equal(object1.isContainedWithinObject(object), true);
-    // object2 intersects object (not fully contained)
-    equal(object2.isContainedWithinObject(object), false);
-    // object3 is outside of object (not fully contained)
-    equal(object3.isContainedWithinObject(object), false);
+    equal(object1.isContainedWithinObject(object), true, 'object1 is fully contained within object');
+    equal(object2.isContainedWithinObject(object), false, 'object2 intersects object (not fully contained)');
+    equal(object3.isContainedWithinObject(object), false, 'object3 is outside of object (not fully contained)');
+    object1.angle = 45;
+    object1.setCoords();
+    equal(object1.isContainedWithinObject(object), false, 'object1 rotated is not contained within object');
+
+    var rect1 = new fabric.Rect({
+      width: 50,
+      height: 50,
+      left: 50,
+      top: 50
+    });
+
+    var rect2 = new fabric.Rect({
+      width: 100,
+      height: 100,
+      left: 100,
+      top: 0,
+      angle: 45,
+    });
+    rect1.setCoords();
+    rect2.setCoords();
+    equal(rect1.isContainedWithinObject(rect2), false, 'rect1 rotated is not contained within rect2');
   });
 
   test('isContainedWithinRect', function() {
@@ -1357,4 +1448,54 @@ test('toDataURL & reference to canvas', function() {
     equal(typeof deserializedObject.clipTo, 'function');
   });
 
+  test('getObjectScale', function() {
+    var object = new fabric.Object({ scaleX: 3, scaleY: 2});
+    var objectScale = object.getObjectScaling();
+    deepEqual(objectScale, {scaleX: object.scaleX, scaleY: object.scaleY});
+  });
+
+  test('getObjectScale in group', function() {
+    var object = new fabric.Object({ scaleX: 3, scaleY: 2});
+    var group = new fabric.Group();
+    group.scaleX = 2;
+    group.scaleY = 2;
+    object.group = group;
+    var objectScale = object.getObjectScaling();
+    deepEqual(objectScale, {
+      scaleX: object.scaleX * group.scaleX,
+      scaleY: object.scaleY * group.scaleY
+    });
+  });
+
+  test('_setShadow', function(){
+    var el = fabric.document.createElement('canvas');
+    el.width = 600; el.height = 600;
+    var canvas = fabric.isLikelyNode ? fabric.createCanvasForNode() : new fabric.StaticCanvas(el);
+    var context = canvas.contextContainer;
+    var object = new fabric.Object({ scaleX: 1, scaleY: 1});
+    var group = new fabric.Group();
+    group.scaleX = 2;
+    group.scaleY = 2;
+    object.setShadow({
+      color: 'red',
+      blur: 10,
+      offsetX: 5,
+      offsetY: 15
+    });
+    object._setShadow(context);
+    equal(context.shadowOffsetX, object.shadow.offsetX);
+    equal(context.shadowOffsetY, object.shadow.offsetY);
+    equal(context.shadowBlur, object.shadow.blur);
+    object.scaleX = 2;
+    object.scaleY = 3;
+    object._setShadow(context);
+    equal(context.shadowOffsetX, object.shadow.offsetX * object.scaleX);
+    equal(context.shadowOffsetY, object.shadow.offsetY * object.scaleY);
+    equal(context.shadowBlur, object.shadow.blur * (object.scaleX + object.scaleY) / 2);
+    object.group = group;
+    object._setShadow(context);
+    equal(context.shadowOffsetX, object.shadow.offsetX * object.scaleX * group.scaleX);
+    equal(context.shadowOffsetY, object.shadow.offsetY * object.scaleY * group.scaleY);
+    equal(context.shadowBlur, object.shadow.blur * (object.scaleX * group.scaleX + object.scaleY * group.scaleY) / 2);
+  });
 })();

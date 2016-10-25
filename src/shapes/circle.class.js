@@ -65,7 +65,7 @@
     /**
      * @private
      * @param {String} key
-     * @param {Any} value
+     * @param {*} value
      * @return {fabric.Circle} thisArg
      */
     _set: function(key, value) {
@@ -99,7 +99,7 @@
      */
     toSVG: function(reviver) {
       var markup = this._createBaseSVGMarkup(), x = 0, y = 0,
-      angle = (this.endAngle - this.startAngle) % ( 2 * pi);
+          angle = (this.endAngle - this.startAngle) % ( 2 * pi);
 
       if (angle === 0) {
         if (this.group && this.group.type === 'path-group') {
@@ -107,7 +107,7 @@
           y = this.top + this.radius;
         }
         markup.push(
-          '<circle ',
+          '<circle ', this.getSvgId(),
             'cx="' + x + '" cy="' + y + '" ',
             'r="', this.radius,
             '" style="', this.getSvgStyles(),
@@ -126,7 +126,7 @@
         markup.push(
           '<path d="M ' + startX + ' ' + startY,
           ' A ' + this.radius + ' ' + this.radius,
-          ' 0 ', + largeFlag + ' 1', ' ' + endX + ' ' + endY,
+          ' 0 ', +largeFlag + ' 1', ' ' + endX + ' ' + endY,
           '" style="', this.getSvgStyles(),
           '" transform="', this.getSvgTransform(),
           ' ', this.getSvgTransformMatrix(),
@@ -238,10 +238,13 @@
    * @static
    * @memberOf fabric.Circle
    * @param {Object} object Object to create an instance from
+   * @param {function} [callback] invoked with new instance as first argument
    * @return {Object} Instance of fabric.Circle
    */
-  fabric.Circle.fromObject = function(object) {
-    return new fabric.Circle(object);
+  fabric.Circle.fromObject = function(object, callback) {
+    var circle = new fabric.Circle(object);
+    callback && callback(circle);
+    return circle;
   };
 
 })(typeof exports !== 'undefined' ? exports : this);

@@ -29,7 +29,7 @@
    * @class fabric.Group
    * @extends fabric.Object
    * @mixes fabric.Collection
-   * @tutorial {@link http://fabricjs.com/fabric-intro-part-3/#groups}
+   * @tutorial {@link http://fabricjs.com/fabric-intro-part-3#groups}
    * @see {@link fabric.Group#initialize} for constructor definition
    */
   fabric.Group = fabric.util.createClass(fabric.Object, fabric.Collection, /** @lends fabric.Group.prototype */ {
@@ -47,6 +47,13 @@
      * @default
      */
     strokeWidth: 0,
+
+    /**
+     * Indicates if click events should also check for subtargets
+     * @type Boolean
+     * @default
+     */
+    subTargetCheck: false,
 
     /**
      * Constructor
@@ -269,14 +276,15 @@
       this.transform(ctx);
       this._setShadow(ctx);
       this.clipTo && fabric.util.clipContext(this, ctx);
+      this._transformDone = true;
       // the array is now sorted in order of highest first, so start from end
       for (var i = 0, len = this._objects.length; i < len; i++) {
         this._renderObject(this._objects[i], ctx);
       }
 
       this.clipTo && ctx.restore();
-
       ctx.restore();
+      this._transformDone = false;
     },
 
     /**
@@ -463,7 +471,7 @@
     toSVG: function(reviver) {
       var markup = this._createBaseSVGMarkup();
       markup.push(
-        '<g transform="',
+        '<g ', this.getSvgId(), 'transform="',
         /* avoiding styles intentionally */
         this.getSvgTransform(),
         this.getSvgTransformMatrix(),
@@ -485,7 +493,7 @@
     /**
      * Returns requested property
      * @param {String} prop Property to get
-     * @return {Any}
+     * @return {*}
      */
     get: function(prop) {
       if (prop in _lockProperties) {
@@ -516,7 +524,6 @@
    * @memberOf fabric.Group
    * @param {Object} object Object to create a group from
    * @param {Function} [callback] Callback to invoke when an group instance is created
-   * @return {fabric.Group} An instance of fabric.Group
    */
   fabric.Group.fromObject = function(object, callback) {
     fabric.util.enlivenObjects(object.objects, function(enlivenedObjects) {

@@ -74,7 +74,7 @@
   /**
    * Gradient class
    * @class fabric.Gradient
-   * @tutorial {@link http://fabricjs.com/fabric-intro-part-2/#gradients}
+   * @tutorial {@link http://fabricjs.com/fabric-intro-part-2#gradients}
    * @see {@link fabric.Gradient#initialize} for constructor definition
    */
   fabric.Gradient = fabric.util.createClass(/** @lends fabric.Gradient.prototype */ {
@@ -162,7 +162,6 @@
     /**
      * Returns SVG representation of an gradient
      * @param {Object} object Object to create a gradient for
-     * @param {Boolean} normalize Whether coords should be normalized
      * @return {String} SVG representation of an gradient (linear/radial)
      */
     toSVG: function(object) {
@@ -192,41 +191,35 @@
       }
       if (this.type === 'linear') {
         markup = [
-          //jscs:disable validateIndentation
           '<linearGradient ',
-            commonAttributes,
-            ' x1="', coords.x1,
-            '" y1="', coords.y1,
-            '" x2="', coords.x2,
-            '" y2="', coords.y2,
+          commonAttributes,
+          ' x1="', coords.x1,
+          '" y1="', coords.y1,
+          '" x2="', coords.x2,
+          '" y2="', coords.y2,
           '">\n'
-          //jscs:enable validateIndentation
         ];
       }
       else if (this.type === 'radial') {
         markup = [
-          //jscs:disable validateIndentation
           '<radialGradient ',
-            commonAttributes,
-            ' cx="', coords.x2,
-            '" cy="', coords.y2,
-            '" r="', coords.r2,
-            '" fx="', coords.x1,
-            '" fy="', coords.y1,
+          commonAttributes,
+          ' cx="', coords.x2,
+          '" cy="', coords.y2,
+          '" r="', coords.r2,
+          '" fx="', coords.x1,
+          '" fy="', coords.y1,
           '">\n'
-          //jscs:enable validateIndentation
         ];
       }
 
       for (var i = 0; i < this.colorStops.length; i++) {
         markup.push(
-          //jscs:disable validateIndentation
           '<stop ',
             'offset="', (this.colorStops[i].offset * 100) + '%',
             '" style="stop-color:', this.colorStops[i].color,
-            (this.colorStops[i].opacity != null ? ';stop-opacity: ' + this.colorStops[i].opacity : ';'),
+            (this.colorStops[i].opacity !== null ? ';stop-opacity: ' + this.colorStops[i].opacity : ';'),
           '"/>\n'
-          //jscs:enable validateIndentation
         );
       }
 
@@ -239,6 +232,7 @@
     /**
      * Returns an instance of CanvasGradient
      * @param {CanvasRenderingContext2D} ctx Context to render on
+     * @param {Object} object
      * @return {CanvasGradient}
      */
     toLive: function(ctx, object) {
@@ -332,11 +326,18 @@
        */
 
       var colorStopEls = el.getElementsByTagName('stop'),
-          type = (el.nodeName === 'linearGradient' ? 'linear' : 'radial'),
+          type,
           gradientUnits = el.getAttribute('gradientUnits') || 'objectBoundingBox',
           gradientTransform = el.getAttribute('gradientTransform'),
           colorStops = [],
-          coords = { }, ellipseMatrix;
+          coords, ellipseMatrix;
+
+      if (el.nodeName === 'linearGradient' || el.nodeName === 'LINEARGRADIENT') {
+        type = 'linear';
+      }
+      else {
+        type = 'radial';
+      }
 
       if (type === 'linear') {
         coords = getLinearCoords(el);
@@ -386,6 +387,12 @@
   function _convertPercentUnitsToValues(object, options, gradientUnits) {
     var propValue, addFactor = 0, multFactor = 1, ellipseMatrix = '';
     for (var prop in options) {
+      if (options[prop] === 'Infinity') {
+        options[prop] = 1;
+      }
+      else if (options[prop] === '-Infinity') {
+        options[prop] = 0;
+      }
       propValue = parseFloat(options[prop], 10);
       if (typeof options[prop] === 'string' && /^\d+%$/.test(options[prop])) {
         multFactor = 0.01;
@@ -408,7 +415,7 @@
         gradientUnits === 'objectBoundingBox' &&
         object.rx !== object.ry) {
 
-      var scaleFactor = object.ry/object.rx;
+      var scaleFactor = object.ry / object.rx;
       ellipseMatrix = ' scale(1, ' + scaleFactor + ')';
       if (options.y1) {
         options.y1 /= scaleFactor;

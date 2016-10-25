@@ -57,7 +57,7 @@
      */
     initialize: function(points, options) {
       options = options || { };
-      this.points = points || [ ];
+      this.points = points || [];
       this.callSuper('initialize', options);
       this._calcDimensions();
       if (!('top' in options)) {
@@ -85,8 +85,7 @@
 
       this.width = (maxX - minX) || 0;
       this.height = (maxY - minY) || 0;
-
-      this.minX = minX || 0,
+      this.minX = minX || 0;
       this.minY = minY || 0;
     },
 
@@ -118,7 +117,7 @@
         addTransform = ' translate(' + (-this.pathOffset.x) + ', ' + (-this.pathOffset.y) + ') ';
       }
       markup.push(
-        '<', this.type, ' ',
+        '<', this.type, ' ', this.getSvgId(),
           'points="', points.join(''),
           '" style="', this.getSvgStyles(),
           '" transform="', this.getSvgTransform(), addTransform,
@@ -133,6 +132,7 @@
     /**
      * @private
      * @param {CanvasRenderingContext2D} ctx Context to render on
+     * @param {Boolean} noTransform
      */
     _render: function(ctx, noTransform) {
       if (!this.commonRender(ctx, noTransform)) {
@@ -148,6 +148,7 @@
     /**
      * @private
      * @param {CanvasRenderingContext2D} ctx Context to render on
+     * @param {Boolean} noTransform
      */
     commonRender: function(ctx, noTransform) {
       var point, len = this.points.length;
@@ -222,10 +223,13 @@
    * @static
    * @memberOf fabric.Polygon
    * @param {Object} object Object to create an instance from
+   * @param {Function} [callback] Callback to invoke when an fabric.Path instance is created
    * @return {fabric.Polygon} Instance of fabric.Polygon
    */
-  fabric.Polygon.fromObject = function(object) {
-    return new fabric.Polygon(object.points, object, true);
+  fabric.Polygon.fromObject = function(object, callback) {
+    var polygon = new fabric.Polygon(object.points, object);
+    callback && callback(polygon);
+    return polygon;
   };
 
 })(typeof exports !== 'undefined' ? exports : this);

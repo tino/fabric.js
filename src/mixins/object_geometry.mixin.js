@@ -48,7 +48,9 @@
             getCoords(other.oCoords)
           );
 
-      return intersection.status === 'Intersection';
+      return intersection.status === 'Intersection'
+        || other.isContainedWithinObject(this)
+        || this.isContainedWithinObject(other);
     },
 
     /**
@@ -57,11 +59,14 @@
      * @return {Boolean} true if object is fully contained within area of another object
      */
     isContainedWithinObject: function(other) {
-      var boundingRect = other.getBoundingRect(),
-          point1 = new fabric.Point(boundingRect.left, boundingRect.top),
-          point2 = new fabric.Point(boundingRect.left + boundingRect.width, boundingRect.top + boundingRect.height);
-
-      return this.isContainedWithinRect(point1, point2);
+      var points = getCoords(this.oCoords),
+          i = 0;
+      for (; i < 4; i++) {
+        if (!other.containsPoint(points[i])) {
+          return false;
+        }
+      }
+      return true;
     },
 
     /**
@@ -87,6 +92,9 @@
      * @return {Boolean} true if point is inside the object
      */
     containsPoint: function(point) {
+      if (!this.oCoords) {
+        this.setCoords();
+      }
       var lines = this._getImageLines(this.oCoords),
           xPoints = this._findCrossPoints(point, lines);
 
@@ -127,8 +135,9 @@
      * @param {fabric.Point} point Point to check
      * @param {Object} oCoords Coordinates of the object being evaluated
      */
+     // remove yi, not used but left code here just in case.
     _findCrossPoints: function(point, oCoords) {
-      var b1, b2, a1, a2, xi, yi,
+      var b1, b2, a1, a2, xi, // yi,
           xcount = 0,
           iLine;
 
@@ -145,7 +154,7 @@
         // optimisation 3: vertical line case
         if ((iLine.o.x === iLine.d.x) && (iLine.o.x >= point.x)) {
           xi = iLine.o.x;
-          yi = point.y;
+          // yi = point.y;
         }
         // calculate the intersection point
         else {
@@ -154,8 +163,8 @@
           a1 = point.y - b1 * point.x;
           a2 = iLine.o.y - b2 * iLine.o.x;
 
-          xi = - (a1 - a2) / (b1 - b2);
-          yi = a1 + b1 * xi;
+          xi = -(a1 - a2) / (b1 - b2);
+          // yi = a1 + b1 * xi;
         }
         // dont count xi < point.x cases
         if (xi >= point.x) {
@@ -202,20 +211,19 @@
     },
 
     /**
-     * Returns width of an object
+     * Returns width of an object bounding box counting transformations
      * @return {Number} width value
      */
     getWidth: function() {
-      //needs to be changed
       return this._getTransformedDimensions().x;
     },
 
     /**
-     * Returns height of an object
+     * Returns height of an object bounding box counting transformations
+     * to be renamed in 2.0
      * @return {Number} height value
      */
     getHeight: function() {
-      //needs to be changed
       return this._getTransformedDimensions().y;
     },
 
@@ -312,10 +320,10 @@
           tr  = new fabric.Point(tl.x + (currentWidth * cosTh), tl.y + (currentWidth * sinTh)),
           bl  = new fabric.Point(tl.x - (currentHeight * sinTh), tl.y + (currentHeight * cosTh)),
           br  = new fabric.Point(coords.x + offsetX, coords.y + offsetY),
-          ml  = new fabric.Point((tl.x + bl.x)/2, (tl.y + bl.y)/2),
-          mt  = new fabric.Point((tr.x + tl.x)/2, (tr.y + tl.y)/2),
-          mr  = new fabric.Point((br.x + tr.x)/2, (br.y + tr.y)/2),
-          mb  = new fabric.Point((br.x + bl.x)/2, (br.y + bl.y)/2),
+          ml  = new fabric.Point((tl.x + bl.x) / 2, (tl.y + bl.y) / 2),
+          mt  = new fabric.Point((tr.x + tl.x) / 2, (tr.y + tl.y) / 2),
+          mr  = new fabric.Point((br.x + tr.x) / 2, (br.y + tr.y) / 2),
+          mb  = new fabric.Point((br.x + bl.x) / 2, (br.y + bl.y) / 2),
           mtr = new fabric.Point(mt.x + sinTh * this.rotatingPointOffset, mt.y - cosTh * this.rotatingPointOffset);
       // debugging
 
@@ -347,6 +355,10 @@
       return this;
     },
 
+    /*
+     * calculate rotation matrix of an object
+     * @return {Array} rotation matrix for the object
+     */
     _calcRotateMatrix: function() {
       if (this.angle) {
         var theta = degreesToRadians(this.angle), cos = Math.cos(theta), sin = Math.sin(theta);
@@ -355,6 +367,11 @@
       return [1, 0, 0, 1, 0, 0];
     },
 
+    /*
+     * calculate trasform Matrix that represent current transformation from
+     * object properties.
+     * @return {Array} matrix Transform Matrix for the object
+     */
     calcTransformMatrix: function() {
       var center = this.getCenterPoint(),
           translateMatrix = [1, 0, 0, 1, center.x, center.y],

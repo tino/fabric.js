@@ -12,6 +12,7 @@
       this.initRemovedHandler();
       this.initCursorSelectionHandlers();
       this.initDoubleClickSimulation();
+      this.mouseMoveHandler = this.mouseMoveHandler.bind(this);
     },
 
     /**
@@ -33,18 +34,14 @@
     initAddedHandler: function() {
       var _this = this;
       this.on('added', function() {
-        if (this.canvas && !this.canvas._hasITextHandlers) {
-          this.canvas._hasITextHandlers = true;
-          this._initCanvasHandlers();
-        }
-
-        // Track IText instances per-canvas. Only register in this array once added
-        // to a canvas; we don't want to leak a reference to the instance forever
-        // simply because it existed at some point.
-        // (Might be added to a collection, but not on a canvas.)
-        if (_this.canvas) {
-          _this.canvas._iTextInstances = _this.canvas._iTextInstances || [];
-          _this.canvas._iTextInstances.push(_this);
+        var canvas = _this.canvas;
+        if (canvas) {
+          if (!canvas._hasITextHandlers) {
+            canvas._hasITextHandlers = true;
+            _this._initCanvasHandlers(canvas);
+          }
+          canvas._iTextInstances = canvas._iTextInstances || [];
+          canvas._iTextInstances.push(_this);
         }
       });
     },
@@ -52,35 +49,46 @@
     initRemovedHandler: function() {
       var _this = this;
       this.on('removed', function() {
-        // (Might be removed from a collection, but not on a canvas.)
-        if (_this.canvas) {
-          _this.canvas._iTextInstances = _this.canvas._iTextInstances || [];
-          fabric.util.removeFromArray(_this.canvas._iTextInstances, _this);
+        var canvas = _this.canvas;
+        if (canvas) {
+          canvas._iTextInstances = canvas._iTextInstances || [];
+          fabric.util.removeFromArray(canvas._iTextInstances, _this);
+          if (canvas._iTextInstances.length === 0) {
+            canvas._hasITextHandlers = false;
+            _this._removeCanvasHandlers(canvas);
+          }
         }
       });
     },
 
     /**
+     * register canvas event to manage exiting on other instances
      * @private
      */
-    _initCanvasHandlers: function() {
-      var _this = this;
-
-      this.canvas.on('selection:cleared', function() {
-        fabric.IText.prototype.exitEditingOnOthers(_this.canvas);
-      });
-
-      this.canvas.on('mouse:up', function() {
-        if (_this.canvas._iTextInstances) {
-          _this.canvas._iTextInstances.forEach(function(obj) {
+    _initCanvasHandlers: function(canvas) {
+      canvas._canvasITextSelectionClearedHanlder = (function() {
+        fabric.IText.prototype.exitEditingOnOthers(canvas);
+      }).bind(this);
+      canvas._mouseUpITextHandler = (function() {
+        if (canvas._iTextInstances) {
+          canvas._iTextInstances.forEach(function(obj) {
             obj.__isMousedown = false;
           });
         }
-      });
+      }).bind(this);
+      canvas.on('selection:cleared', canvas._canvasITextSelectionClearedHanlder);
+      canvas.on('object:selected', canvas._canvasITextSelectionClearedHanlder);
+      canvas.on('mouse:up', canvas._mouseUpITextHandler);
+    },
 
-      this.canvas.on('object:selected', function() {
-        fabric.IText.prototype.exitEditingOnOthers(_this.canvas);
-      });
+    /**
+     * remove canvas event to manage exiting on other instances
+     * @private
+     */
+    _removeCanvasHandlers: function(canvas) {
+      canvas.off('selection:cleared', canvas._canvasITextSelectionClearedHanlder);
+      canvas.off('object:selected', canvas._canvasITextSelectionClearedHanlder);
+      canvas.off('mouse:up', canvas._mouseUpITextHandler);
     },
 
     /**
@@ -112,8 +120,8 @@
           }
         },
         onChange: function() {
-          if (obj.canvas) {
-            obj.canvas.clearContext(obj.canvas.contextTop || obj.ctx);
+          // we do not want to animate a selection, only cursor
+          if (obj.canvas && obj.selectionStart === obj.selectionEnd) {
             obj.renderCursorOrSelection();
           }
         },
@@ -146,17 +154,8 @@
       var _this = this,
           delay = restart ? 0 : this.cursorDelay;
 
-      this._currentTickState && this._currentTickState.abort();
-      this._currentTickCompleteState && this._currentTickCompleteState.abort();
-      clearTimeout(this._cursorTimeout1);
+      this.abortCursorAnimation();
       this._currentCursorOpacity = 1;
-      if (this.canvas) {
-        this.canvas.clearContext(this.canvas.contextTop || this.ctx);
-        this.renderCursorOrSelection();
-      }
-      if (this._cursorTimeout2) {
-        clearTimeout(this._cursorTimeout2);
-      }
       this._cursorTimeout2 = setTimeout(function() {
         _this._tick();
       }, delay);
@@ -166,6 +165,7 @@
      * Aborts cursor animation and clears all timeouts
      */
     abortCursorAnimation: function() {
+      var shouldClear = this._currentTickState || this._currentTickCompleteState;
       this._currentTickState && this._currentTickState.abort();
       this._currentTickCompleteState && this._currentTickCompleteState.abort();
 
@@ -173,15 +173,22 @@
       clearTimeout(this._cursorTimeout2);
 
       this._currentCursorOpacity = 0;
-      this.canvas && this.canvas.clearContext(this.canvas.contextTop || this.ctx);
+      // to clear just itext area we need to transform the context
+      // it may not be worth it
+      if (shouldClear) {
+        this.canvas && this.canvas.clearContext(this.canvas.contextTop || this.ctx);
+      }
+
     },
 
     /**
      * Selects entire text
      */
     selectAll: function() {
-      this.setSelectionStart(0);
-      this.setSelectionEnd(this.text.length);
+      this.selectionStart = 0;
+      this.selectionEnd = this.text.length;
+      this._fireSelectionChanged();
+      this._updateTextarea();
     },
 
     /**
@@ -312,12 +319,15 @@
      * @param {Number} selectionStart Index of a character
      */
     selectWord: function(selectionStart) {
+      selectionStart = selectionStart || this.selectionStart;
       var newSelectionStart = this.searchWordBoundary(selectionStart, -1), /* search backwards */
-          newSelectionEnd   = this.searchWordBoundary(selectionStart, 1);
-      /* search forward */
+          newSelectionEnd = this.searchWordBoundary(selectionStart, 1); /* search forward */
 
-      this.setSelectionStart(newSelectionStart);
-      this.setSelectionEnd(newSelectionEnd);
+      this.selectionStart = newSelectionStart;
+      this.selectionEnd = newSelectionEnd;
+      this._fireSelectionChanged();
+      this._updateTextarea();
+      this.renderCursorOrSelection();
     },
 
     /**
@@ -325,11 +335,14 @@
      * @param {Number} selectionStart Index of a character
      */
     selectLine: function(selectionStart) {
+      selectionStart = selectionStart || this.selectionStart;
       var newSelectionStart = this.findLineBoundaryLeft(selectionStart),
-          newSelectionEnd   = this.findLineBoundaryRight(selectionStart);
+          newSelectionEnd = this.findLineBoundaryRight(selectionStart);
 
-      this.setSelectionStart(newSelectionStart);
-      this.setSelectionEnd(newSelectionEnd);
+      this.selectionStart = newSelectionStart;
+      this.selectionEnd = newSelectionEnd;
+      this._fireSelectionChanged();
+      this._updateTextarea();
     },
 
     /**
@@ -337,7 +350,7 @@
      * @return {fabric.IText} thisArg
      * @chainable
      */
-    enterEditing: function() {
+    enterEditing: function(e) {
       if (this.isEditing || !this.editable) {
         return;
       }
@@ -348,11 +361,12 @@
 
       this.isEditing = true;
 
-      this.initHiddenTextarea();
+      this.initHiddenTextarea(e);
       this.hiddenTextarea.focus();
       this._updateTextarea();
       this._saveEditingProps();
       this._setEditingProps();
+      this._textBeforeEdit = this.text;
 
       this._tick();
       this.fire('editing:entered');
@@ -360,10 +374,9 @@
       if (!this.canvas) {
         return this;
       }
-
-      this.canvas.renderAll();
       this.canvas.fire('text:editing:entered', { target: this });
       this.initMouseMoveHandler();
+      this.canvas.renderAll();
       return this;
     },
 
@@ -382,22 +395,36 @@
      * Initializes "mousemove" event handler
      */
     initMouseMoveHandler: function() {
-      var _this = this;
-      this.canvas.on('mouse:move', function(options) {
-        if (!_this.__isMousedown || !_this.isEditing) {
-          return;
-        }
+      this.canvas.on('mouse:move', this.mouseMoveHandler);
+    },
 
-        var newSelectionStart = _this.getSelectionStartFromPointer(options.e);
-        if (newSelectionStart >= _this.__selectionStartOnMouseDown) {
-          _this.setSelectionStart(_this.__selectionStartOnMouseDown);
-          _this.setSelectionEnd(newSelectionStart);
-        }
-        else {
-          _this.setSelectionStart(newSelectionStart);
-          _this.setSelectionEnd(_this.__selectionStartOnMouseDown);
-        }
-      });
+    /**
+     * @private
+     */
+    mouseMoveHandler: function(options) {
+      if (!this.__isMousedown || !this.isEditing) {
+        return;
+      }
+
+      var newSelectionStart = this.getSelectionStartFromPointer(options.e),
+          currentStart = this.selectionStart,
+          currentEnd = this.selectionEnd;
+      if (newSelectionStart === this.__selectionStartOnMouseDown) {
+        return;
+      }
+      if (newSelectionStart > this.__selectionStartOnMouseDown) {
+        this.selectionStart = this.__selectionStartOnMouseDown;
+        this.selectionEnd = newSelectionStart;
+      }
+      else {
+        this.selectionStart = newSelectionStart;
+        this.selectionEnd = this.__selectionStartOnMouseDown;
+      }
+      if (this.selectionStart !== currentStart || this.selectionEnd !== currentEnd) {
+        this._fireSelectionChanged();
+        this._updateTextarea();
+        this.renderCursorOrSelection();
+      }
     },
 
     /**
@@ -420,13 +447,68 @@
      * @private
      */
     _updateTextarea: function() {
-      if (!this.hiddenTextarea) {
+      if (!this.hiddenTextarea || this.inCompositionMode) {
         return;
       }
-
+      this.cursorOffsetCache = { };
       this.hiddenTextarea.value = this.text;
       this.hiddenTextarea.selectionStart = this.selectionStart;
       this.hiddenTextarea.selectionEnd = this.selectionEnd;
+      if (this.selectionStart === this.selectionEnd) {
+        var style = this._calcTextareaPosition();
+        this.hiddenTextarea.style.left = style.left;
+        this.hiddenTextarea.style.top = style.top;
+        this.hiddenTextarea.style.fontSize = style.fontSize;
+      }
+    },
+
+    /**
+     * @private
+     * @return {Object} style contains style for hiddenTextarea
+     */
+    _calcTextareaPosition: function() {
+      if (!this.canvas) {
+        return { x: 1, y: 1 };
+      }
+      var chars = this.text.split(''),
+          boundaries = this._getCursorBoundaries(chars, 'cursor'),
+          cursorLocation = this.get2DCursorLocation(),
+          lineIndex = cursorLocation.lineIndex,
+          charIndex = cursorLocation.charIndex,
+          charHeight = this.getCurrentCharFontSize(lineIndex, charIndex),
+          leftOffset = (lineIndex === 0 && charIndex === 0)
+                    ? this._getLineLeftOffset(this._getLineWidth(this.ctx, lineIndex))
+                    : boundaries.leftOffset,
+          m = this.calcTransformMatrix(),
+          p = {
+            x: boundaries.left + leftOffset,
+            y: boundaries.top + boundaries.topOffset + charHeight
+          },
+          upperCanvas = this.canvas.upperCanvasEl,
+          maxWidth = upperCanvas.width - charHeight,
+          maxHeight = upperCanvas.height - charHeight;
+
+      p = fabric.util.transformPoint(p, m);
+      p = fabric.util.transformPoint(p, this.canvas.viewportTransform);
+
+      if (p.x < 0) {
+        p.x = 0;
+      }
+      if (p.x > maxWidth) {
+        p.x = maxWidth;
+      }
+      if (p.y < 0) {
+        p.y = 0;
+      }
+      if (p.y > maxHeight) {
+        p.y = maxHeight;
+      }
+
+      // add canvas offset on document
+      p.x += this.canvas._offset.left;
+      p.y += this.canvas._offset.top;
+
+      return { left: p.x + 'px', top: p.y + 'px', fontSize: charHeight };
     },
 
     /**
@@ -470,7 +552,7 @@
      * @chainable
      */
     exitEditing: function() {
-
+      var isTextChanged = (this._textBeforeEdit !== this.text);
       this.selected = false;
       this.isEditing = false;
       this.selectable = true;
@@ -484,7 +566,12 @@
       this._currentCursorOpacity = 0;
 
       this.fire('editing:exited');
-      this.canvas && this.canvas.fire('text:editing:exited', { target: this });
+      isTextChanged && this.fire('modified');
+      if (this.canvas) {
+        this.canvas.off('mouse:move', this.mouseMoveHandler);
+        this.canvas.fire('text:editing:exited', { target: this });
+        isTextChanged && this.canvas.fire('object:modified', { target: this });
+      }
 
       return this;
     },
@@ -508,7 +595,8 @@
         this._removeSingleCharAndStyle(start + 1);
         end--;
       }
-      this.setSelectionStart(start);
+      this.selectionStart = start;
+      this.selectionEnd = start;
     },
 
     _removeSingleCharAndStyle: function(index) {
@@ -531,7 +619,6 @@
 
       if (this.selectionEnd - this.selectionStart > 1) {
         this._removeCharsFromTo(this.selectionStart, this.selectionEnd);
-        this.setSelectionEnd(this.selectionStart);
       }
       //short circuit for block paste
       if (!useCopiedStyle && this.isEmptyStyles()) {
@@ -564,10 +651,11 @@
         return;
       }
       this._updateTextarea();
-      this.canvas && this.canvas.renderAll();
       this.setCoords();
+      this._fireSelectionChanged();
       this.fire('changed');
       this.canvas && this.canvas.fire('text:changed', { target: this });
+      this.canvas && this.canvas.renderAll();
     },
 
     /**
@@ -748,6 +836,58 @@
      */
     insertNewline: function() {
       this.insertChars('\n');
+    },
+
+    /**
+     * Set the selectionStart and selectionEnd according to the ne postion of cursor
+     * mimic the key - mouse navigation when shift is pressed.
+     */
+    setSelectionStartEndWithShift: function(start, end, newSelection) {
+      if (newSelection <= start) {
+        if (end === start) {
+          this._selectionDirection = 'left';
+        }
+        else if (this._selectionDirection === 'right') {
+          this._selectionDirection = 'left';
+          this.selectionEnd = start;
+        }
+        this.selectionStart = newSelection;
+      }
+      else if (newSelection > start && newSelection < end) {
+        if (this._selectionDirection === 'right') {
+          this.selectionEnd = newSelection;
+        }
+        else {
+          this.selectionStart = newSelection;
+        }
+      }
+      else {
+        // newSelection is > selection start and end
+        if (end === start) {
+          this._selectionDirection = 'right';
+        }
+        else if (this._selectionDirection === 'left') {
+          this._selectionDirection = 'right';
+          this.selectionStart = end;
+        }
+        this.selectionEnd = newSelection;
+      }
+    },
+
+    setSelectionInBoundaries: function() {
+      var length = this.text.length;
+      if (this.selectionStart > length) {
+        this.selectionStart = length;
+      }
+      else if (this.selectionStart < 0) {
+        this.selectionStart = 0;
+      }
+      if (this.selectionEnd > length) {
+        this.selectionEnd = length;
+      }
+      else if (this.selectionEnd < 0) {
+        this.selectionEnd = 0;
+      }
     }
   });
 })();

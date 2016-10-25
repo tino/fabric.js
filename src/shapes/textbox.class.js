@@ -17,29 +17,46 @@
    * @see {@link fabric.Textbox#initialize} for constructor definition
    */
   fabric.Textbox = fabric.util.createClass(fabric.IText, fabric.Observable, {
+
     /**
      * Type of an object
      * @type String
      * @default
      */
     type: 'textbox',
+
     /**
      * Minimum width of textbox, in pixels.
      * @type Number
      * @default
      */
     minWidth: 20,
+
     /**
      * Minimum calculated width of a textbox, in pixels.
+     * fixed to 2 so that an empty textbox cannot go to 0
+     * and is still selectable without text.
      * @type Number
      * @default
      */
-    dynamicMinWidth: 0,
+    dynamicMinWidth: 2,
+
     /**
      * Cached array of text wrapping.
      * @type Array
      */
     __cachedLines: null,
+
+    /**
+     * Override standard Object class values
+     */
+    lockScalingY: true,
+
+    /**
+     * Override standard Object class values
+     */
+    lockScalingFlip: true,
+
     /**
      * Constructor. Some scaling related property values are forced. Visibility
      * of controls is also fixed; only the rotation and width controls are
@@ -50,14 +67,7 @@
      */
     initialize: function(text, options) {
       this.ctx = fabric.util.createCanvasElement().getContext('2d');
-
       this.callSuper('initialize', text, options);
-      this.set({
-        lockUniScaling: false,
-        lockScalingY: true,
-        lockScalingFlip: true,
-        hasBorders: true
-      });
       this.setControlsVisibility(fabric.Textbox.getTextboxControlVisibility());
 
       // add width to this list of props that effect line wrapping.
@@ -86,7 +96,6 @@
 
       // wrap lines
       this._textLines = this._splitTextIntoLines();
-
       // if after wrapping, the width is smaller than dynamicMinWidth, change the width and re-wrap
       if (this.dynamicMinWidth > this.width) {
         this._set('width', this.dynamicMinWidth);
@@ -111,12 +120,12 @@
           map               = {};
 
       for (var i = 0; i < this._textLines.length; i++) {
-        if (this.text[charCount] === '\n') {
+        if (this.text[charCount] === '\n' && i > 0) {
           realLineCharCount = 0;
           charCount++;
           realLineCount++;
         }
-        else if (this.text[charCount] === ' ') {
+        else if (this.text[charCount] === ' ' && i > 0) {
           // this case deals with space's that are removed from end of lines when wrapping
           realLineCharCount++;
           charCount++;
@@ -236,11 +245,9 @@
     _measureText: function(ctx, text, lineIndex, charOffset) {
       var width = 0;
       charOffset = charOffset || 0;
-
       for (var i = 0, len = text.length; i < len; i++) {
         width += this._getWidthOfChar(ctx, text[i], lineIndex, i + charOffset);
       }
-
       return width;
     },
 
@@ -263,7 +270,8 @@
           wordWidth        = 0,
           infixWidth       = 0,
           largestWordWidth = 0,
-          lineJustStarted = true;
+          lineJustStarted = true,
+          additionalSpace = this._getWidthOfCharSpacing();
 
       for (var i = 0; i < words.length; i++) {
         word = words[i];
@@ -271,13 +279,16 @@
 
         offset += word.length;
 
-        lineWidth += infixWidth + wordWidth;
+        lineWidth += infixWidth + wordWidth - additionalSpace;
 
         if (lineWidth >= this.width && !lineJustStarted) {
           lines.push(line);
           line = '';
           lineWidth = wordWidth;
           lineJustStarted = true;
+        }
+        else {
+          lineWidth += additionalSpace;
         }
 
         if (!lineJustStarted) {
@@ -297,7 +308,7 @@
       i && lines.push(line);
 
       if (largestWordWidth > this.dynamicMinWidth) {
-        this.dynamicMinWidth = largestWordWidth;
+        this.dynamicMinWidth = largestWordWidth - additionalSpace;
       }
 
       return lines;
@@ -329,7 +340,7 @@
      * the same font-size value would result in different actual size depending
      * on the value of the scale.
      * @param {String} key
-     * @param {Any} value
+     * @param {*} value
      */
     setOnGroup: function(key, value) {
       if (key === 'scaleX') {
@@ -434,10 +445,13 @@
    * @static
    * @memberOf fabric.Textbox
    * @param {Object} object Object to create an instance from
+   * @param {Function} [callback] Callback to invoke when an fabric.Textbox instance is created
    * @return {fabric.Textbox} instance of fabric.Textbox
    */
-  fabric.Textbox.fromObject = function(object) {
-    return new fabric.Textbox(object.text, clone(object));
+  fabric.Textbox.fromObject = function(object, callback) {
+    var textbox = new fabric.Textbox(object.text, clone(object));
+    callback && callback(textbox);
+    return textbox;
   };
   /**
    * Returns the default controls visibility required for Textboxes.
@@ -456,11 +470,5 @@
       mtr: true
     };
   };
-  /**
-   * Contains all fabric.Textbox objects that have been created
-   * @static
-   * @memberOf fabric.Textbox
-   * @type Array
-   */
-  fabric.Textbox.instances = [];
+
 })(typeof exports !== 'undefined' ? exports : this);

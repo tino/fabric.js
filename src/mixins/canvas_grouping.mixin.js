@@ -13,7 +13,7 @@
      */
     _shouldGroup: function(e, target) {
       var activeObject = this.getActiveObject();
-      return e.shiftKey && target && target.selectable &&
+      return e[this.selectionKey] && target && target.selectable &&
             (this.getActiveGroup() || (activeObject && activeObject !== target))
             && this.selection;
     },
@@ -24,18 +24,17 @@
      * @param {fabric.Object} target
      */
     _handleGrouping: function (e, target) {
+      var activeGroup = this.getActiveGroup();
 
-      if (target === this.getActiveGroup()) {
-
-        // if it's a group, find target again, this time skipping group
+      if (target === activeGroup) {
+        // if it's a group, find target again, using activeGroup objects
         target = this.findTarget(e, true);
-
         // if even object is not found, bail out
-        if (!target || target.isType('group')) {
+        if (!target) {
           return;
         }
       }
-      if (this.getActiveGroup()) {
+      if (activeGroup) {
         this._updateActiveGroup(target, e);
       }
       else {
@@ -101,9 +100,9 @@
       var objects = this.getObjects(),
           isActiveLower = objects.indexOf(this._activeObject) < objects.indexOf(target),
           groupObjects = isActiveLower
-            ? [ this._activeObject, target ]
-            : [ target, this._activeObject ];
-
+            ? [this._activeObject, target]
+            : [target, this._activeObject];
+      this._activeObject.isEditing && this._activeObject.exitEditing();
       return new fabric.Group(groupObjects, {
         canvas: this
       });
@@ -137,7 +136,7 @@
      * @private
      */
     _collectObjects: function() {
-      var group = [ ],
+      var group = [],
           currentObject,
           x1 = this._groupSelector.ex,
           y1 = this._groupSelector.ey,

@@ -100,7 +100,7 @@
     /**
      * @private
      * @param {String} key
-     * @param {Any} value
+     * @param {*} value
      */
     _set: function(key, value) {
       this.callSuper('_set', key, value);
@@ -149,6 +149,7 @@
     /**
      * @private
      * @param {CanvasRenderingContext2D} ctx Context to render on
+     * @param {Boolean} noTransform
      */
     _render: function(ctx, noTransform) {
       ctx.beginPath();
@@ -239,7 +240,7 @@
         p = this.calcLinePoints();
       }
       markup.push(
-        '<line ',
+        '<line ', this.getSvgId(),
           'x1="', p.x1,
           '" y1="', p.y1,
           '" x2="', p.x2,
@@ -297,11 +298,14 @@
    * @static
    * @memberOf fabric.Line
    * @param {Object} object Object to create an instance from
+   * @param {function} [callback] invoked with new instance as first argument
    * @return {fabric.Line} instance of fabric.Line
    */
-  fabric.Line.fromObject = function(object) {
-    var points = [object.x1, object.y1, object.x2, object.y2];
-    return new fabric.Line(points, object);
+  fabric.Line.fromObject = function(object, callback) {
+    var points = [object.x1, object.y1, object.x2, object.y2],
+        line = new fabric.Line(points, object);
+    callback && callback(line);
+    return line;
   };
 
   /**
@@ -318,12 +322,12 @@
 
     return function() {
       switch (this.get(origin)) {
-      case nearest:
-        return Math.min(this.get(axis1), this.get(axis2));
-      case center:
-        return Math.min(this.get(axis1), this.get(axis2)) + (0.5 * this.get(dimension));
-      case farthest:
-        return Math.max(this.get(axis1), this.get(axis2));
+        case nearest:
+          return Math.min(this.get(axis1), this.get(axis2));
+        case center:
+          return Math.min(this.get(axis1), this.get(axis2)) + (0.5 * this.get(dimension));
+        case farthest:
+          return Math.max(this.get(axis1), this.get(axis2));
       }
     };
 

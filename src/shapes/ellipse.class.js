@@ -58,7 +58,7 @@
     /**
      * @private
      * @param {String} key
-     * @param {Any} value
+     * @param {*} value
      * @return {fabric.Ellipse} thisArg
      */
     _set: function(key, value) {
@@ -120,7 +120,7 @@
         y = this.top + this.ry;
       }
       markup.push(
-        '<ellipse ',
+        '<ellipse ', this.getSvgId(),
           'cx="', x, '" cy="', y, '" ',
           'rx="', this.rx,
           '" ry="', this.ry,
@@ -142,10 +142,10 @@
     _render: function(ctx, noTransform) {
       ctx.beginPath();
       ctx.save();
-      ctx.transform(1, 0, 0, this.ry/this.rx, 0, 0);
+      ctx.transform(1, 0, 0, this.ry / this.rx, 0, 0);
       ctx.arc(
         noTransform ? this.left + this.rx : 0,
-        noTransform ? (this.top + this.ry) * this.rx/this.ry : 0,
+        noTransform ? (this.top + this.ry) * this.rx / this.ry : 0,
         this.rx,
         0,
         piBy2,
@@ -202,10 +202,13 @@
    * @static
    * @memberOf fabric.Ellipse
    * @param {Object} object Object to create an instance from
+   * @param {function} [callback] invoked with new instance as first argument
    * @return {fabric.Ellipse}
    */
-  fabric.Ellipse.fromObject = function(object) {
-    return new fabric.Ellipse(object);
+  fabric.Ellipse.fromObject = function(object, callback) {
+    var ellipse = new fabric.Ellipse(object);
+    callback && callback(ellipse);
+    return ellipse;
   };
 
 })(typeof exports !== 'undefined' ? exports : this);

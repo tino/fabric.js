@@ -1,10 +1,9 @@
 (function() {
 
   var degreesToRadians = fabric.util.degreesToRadians,
-      //jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+      /* eslint-disable camelcase */
       isVML = function() { return typeof G_vmlCanvasManager !== 'undefined'; };
-  //jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-
+      /* eslint-enable camelcase */
   fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prototype */ {
 
     /**
@@ -146,24 +145,24 @@
         skewY = this.skewY;
       }
       var dimensions = this._getNonTransformedDimensions(),
-          dimX = dimensions.x /2, dimY = dimensions.y / 2,
+          dimX = dimensions.x / 2, dimY = dimensions.y / 2,
           points = [
-          {
-            x: -dimX,
-            y: -dimY
-          },
-          {
-            x: dimX,
-            y: -dimY
-          },
-          {
-            x: -dimX,
-            y: dimY
-          },
-          {
-            x: dimX,
-            y: dimY
-          }],
+            {
+              x: -dimX,
+              y: -dimY
+            },
+            {
+              x: dimX,
+              y: -dimY
+            },
+            {
+              x: -dimX,
+              y: dimY
+            },
+            {
+              x: dimX,
+              y: dimY
+            }],
           i, transformMatrix = this._calcDimensionsTransformMatrix(skewX, skewY, false),
           bbox;
       for (i = 0; i < points.length; i++) {
@@ -179,12 +178,34 @@
     _calculateCurrentDimensions: function()  {
       var vpt = this.getViewportTransform(),
           dim = this._getTransformedDimensions(),
-          w = dim.x, h = dim.y;
+          w = dim.x, h = dim.y,
+          p = fabric.util.transformPoint(new fabric.Point(w, h), vpt, true);
 
-      w += 2 * this.padding;
-      h += 2 * this.padding;
+      return p.scalarAdd(2 * this.padding);
+    },
 
-      return fabric.util.transformPoint(new fabric.Point(w, h), vpt, true);
+    /**
+     * Draws a colored layer behind the object, inside its selection borders.
+     * Requires public options: padding, selectionBackgroundColor
+     * this function is called when the context is transformed
+     * @param {CanvasRenderingContext2D} ctx Context to draw on
+     * @return {fabric.Object} thisArg
+     * @chainable
+     */
+    drawSelectionBackground: function(ctx) {
+      if (!this.selectionBackgroundColor || this.group || !this.active) {
+        return this;
+      }
+      ctx.save();
+      var center = this.getCenterPoint(), wh = this._calculateCurrentDimensions(),
+          vpt = this.canvas.viewportTransform;
+      ctx.translate(center.x, center.y);
+      ctx.scale(1 / vpt[0], 1 / vpt[3]);
+      ctx.rotate(degreesToRadians(this.angle));
+      ctx.fillStyle = this.selectionBackgroundColor;
+      ctx.fillRect(-wh.x / 2, -wh.y / 2, wh.x, wh.y);
+      ctx.restore();
+      return this;
     },
 
     /**
@@ -206,9 +227,8 @@
           height = wh.y + strokeWidth;
 
       ctx.save();
-      ctx.globalAlpha = this.isMoving ? this.borderOpacityWhenMoving : 1;
       ctx.strokeStyle = this.borderColor;
-      ctx.lineWidth = strokeWidth;
+      this._setLineDash(ctx, this.borderDashArray, null);
 
       ctx.strokeRect(
         -width / 2,
@@ -254,10 +274,8 @@
           height = wh.y + strokeWidth + 2 * this.padding;
 
       ctx.save();
-
-      ctx.globalAlpha = this.isMoving ? this.borderOpacityWhenMoving : 1;
+      this._setLineDash(ctx, this.borderDashArray, null);
       ctx.strokeStyle = this.borderColor;
-      ctx.lineWidth = strokeWidth;
 
       ctx.strokeRect(
         -width / 2,
@@ -289,14 +307,14 @@
           scaleOffset = this.cornerSize,
           left = -(width + scaleOffset) / 2,
           top = -(height + scaleOffset) / 2,
-          methodName = this.transparentCorners ? 'strokeRect' : 'fillRect';
+          methodName = this.transparentCorners ? 'stroke' : 'fill';
 
       ctx.save();
-
-      ctx.lineWidth = 1;
-
-      ctx.globalAlpha = this.isMoving ? this.borderOpacityWhenMoving : 1;
       ctx.strokeStyle = ctx.fillStyle = this.cornerColor;
+      if (!this.transparentCorners) {
+        ctx.strokeStyle = this.cornerStrokeColor;
+      }
+      this._setLineDash(ctx, this.cornerDashArray, null);
 
       // top-left
       this._drawControl('tl', ctx, methodName,
@@ -322,23 +340,23 @@
 
         // middle-top
         this._drawControl('mt', ctx, methodName,
-          left + width/2,
+          left + width / 2,
           top);
 
         // middle-bottom
         this._drawControl('mb', ctx, methodName,
-          left + width/2,
+          left + width / 2,
           top + height);
 
         // middle-right
         this._drawControl('mr', ctx, methodName,
           left + width,
-          top + height/2);
+          top + height / 2);
 
         // middle-left
         this._drawControl('ml', ctx, methodName,
           left,
-          top + height/2);
+          top + height / 2);
       }
 
       // middle-top-rotate
@@ -360,9 +378,23 @@
       if (!this.isControlVisible(control)) {
         return;
       }
-      var size = this.cornerSize;
-      isVML() || this.transparentCorners || ctx.clearRect(left, top, size, size);
-      ctx[methodName](left, top, size, size);
+      var size = this.cornerSize, stroke = !this.transparentCorners && this.cornerStrokeColor;
+      switch (this.cornerStyle) {
+        case 'circle':
+          ctx.beginPath();
+          ctx.arc(left + size / 2, top + size / 2, size / 2, 0, 2 * Math.PI, false);
+          ctx[methodName]();
+          if (stroke) {
+            ctx.stroke();
+          }
+          break;
+        default:
+          isVML() || this.transparentCorners || ctx.clearRect(left, top, size, size);
+          ctx[methodName + 'Rect'](left, top, size, size);
+          if (stroke) {
+            ctx.strokeRect(left, top, size, size);
+          }
+      }
     },
 
     /**

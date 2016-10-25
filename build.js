@@ -12,8 +12,8 @@ buildArgs.forEach(function(arg) {
   buildArgsAsObject[key] = value;
 });
 
-var modulesToInclude = buildArgsAsObject.modules ? buildArgsAsObject.modules.split(',') : [ ];
-var modulesToExclude = buildArgsAsObject.exclude ? buildArgsAsObject.exclude.split(',') : [ ];
+var modulesToInclude = buildArgsAsObject.modules ? buildArgsAsObject.modules.split(',') : [];
+var modulesToExclude = buildArgsAsObject.exclude ? buildArgsAsObject.exclude.split(',') : [];
 
 var distributionPath = buildArgsAsObject.dest || 'dist/';
 var minifier = buildArgsAsObject.minifier || 'uglifyjs';
@@ -235,6 +235,9 @@ var filesToInclude = [
   ifSpecifiedInclude('image_filters', 'src/filters/multiply_filter.class.js'),
   ifSpecifiedInclude('image_filters', 'src/filters/blend_filter.class.js'),
   ifSpecifiedInclude('image_filters', 'src/filters/resize_filter.class.js'),
+  ifSpecifiedInclude('image_filters', 'src/filters/colormatrix_filter.class.js'),
+  ifSpecifiedInclude('image_filters', 'src/filters/contrast_filter.class.js'),
+  ifSpecifiedInclude('image_filters', 'src/filters/saturate_filter.class.js'),
 
   ifSpecifiedInclude('text', 'src/shapes/text.class.js'),
 

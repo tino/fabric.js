@@ -49,7 +49,6 @@
      * Constructor
      * @param {Array} points Array of points (where each point is an object with x and y)
      * @param {Object} [options] Options object
-     * @param {Boolean} [skipOffset] Whether points offsetting should be skipped
      * @return {fabric.Polyline} thisArg
      * @example
      * var poly = new fabric.Polyline([
@@ -77,13 +76,6 @@
     },
 
     /**
-     * @private
-     */
-    _applyPointOffset: function() {
-      return fabric.Polygon.prototype._applyPointOffset.call(this);
-    },
-
-    /**
      * Returns object representation of an instance
      * @param {Array} [propertiesToInclude] Any properties that you might want to additionally include in the output
      * @return {Object} Object representation of an instance
@@ -106,9 +98,10 @@
     /**
      * @private
      * @param {CanvasRenderingContext2D} ctx Context to render on
+     * @param {Boolean} noTransform
      */
-    _render: function(ctx) {
-      if (!fabric.Polygon.prototype.commonRender.call(this, ctx)) {
+    _render: function(ctx, noTransform) {
+      if (!fabric.Polygon.prototype.commonRender.call(this, ctx, noTransform)) {
         return;
       }
       this._renderFill(ctx);
@@ -174,11 +167,13 @@
    * @static
    * @memberOf fabric.Polyline
    * @param {Object} object Object to create an instance from
+   * @param {Function} [callback] Callback to invoke when an fabric.Path instance is created
    * @return {fabric.Polyline} Instance of fabric.Polyline
    */
-  fabric.Polyline.fromObject = function(object) {
-    var points = object.points;
-    return new fabric.Polyline(points, object, true);
+  fabric.Polyline.fromObject = function(object, callback) {
+    var polyline = new fabric.Polyline(object.points, object);
+    callback && callback(polyline);
+    return polyline;
   };
 
 })(typeof exports !== 'undefined' ? exports : this);
